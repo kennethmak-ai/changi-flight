@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Changi PHV" />
+  <title>Changi PHV · Early Morning Arrivals</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;900&family=Syne:wght@400;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #060d1a;
+      --surface:   #0d1829;
+      --border:    rgba(255,255,255,0.06);
+      --t1:        #38bdf8;
+      --t2:        #34d399;
+      --t3:        #f59e0b;
+      --t4:        #f472b6;
+      --muted:     #334155;
+      --dim:       #1e293b;
+      --text:      #e2e8f0;
+      --subtext:   #64748b;
+      --mono:      'JetBrains Mono', monospace;
+      --sans:      'Syne', sans-serif;
+    }
+
+    html, body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* scrollbar */
+    ::-webkit-scrollbar { width: 3px; height: 3px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--dim); border-radius: 4px; }
+
+    /* animations */
+    @keyframes spin  { to { transform: rotate(360deg); } }
+    @keyframes ping  { 75%,100% { transform: scale(2.2); opacity: 0; } }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes pulse-border {
+      0%,100% { box-shadow: 0 0 0 0 rgba(56,189,248,0.3); }
+      50%     { box-shadow: 0 0 0 6px rgba(56,189,248,0); }
+    }
+
+    /* ── layout ── */
+    #header {
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(6,13,26,0.92);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 18px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    #header .label {
+      font-size: 9px; letter-spacing: 4px; color: var(--t1);
+      text-transform: uppercase; margin-bottom: 3px;
+    }
+    #header .title {
+      font-family: var(--mono); font-size: 17px; font-weight: 900;
+      color: var(--text); letter-spacing: -0.5px;
+    }
+    #clock {
+      font-family: var(--mono); font-size: 28px; font-weight: 900;
+      color: var(--t1); line-height: 1; text-align: right;
+    }
+    #clock .tz {
+      font-size: 8px; color: var(--muted); letter-spacing: 2px;
+      margin-top: 3px; display: block;
+    }
+
+    #main { padding: 16px 18px; max-width: 740px; margin: 0 auto; }
+
+    /* ── banner ── */
+    #banner {
+      background: linear-gradient(135deg, rgba(56,189,248,0.1) 0%, rgba(52,211,153,0.06) 100%);
+      border: 1px solid rgba(56,189,248,0.22);
+      border-radius: 14px;
+      padding: 16px 18px;
+      margin-bottom: 18px;
+      animation: fadeUp 0.5s ease both;
+      display: none;
+    }
+    #banner .banner-label {
+      font-size: 9px; letter-spacing: 3px; color: var(--subtext); margin-bottom: 10px;
+    }
+    #banner .window-row {
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 12px;
+    }
+    #banner .window-times {
+      font-family: var(--mono); font-size: 30px; font-weight: 900; line-height: 1;
+    }
+    #banner .window-sub {
+      font-size: 11px; color: var(--subtext); margin-top: 5px;
+    }
+    #banner .term-chips { display: flex; gap: 6px; }
+    .term-chip {
+      width: 34px; height: 34px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--mono); font-size: 11px; font-weight: 900;
+      border: 1px solid var(--dim); background: rgba(255,255,255,0.03);
+      color: var(--muted);
+    }
+    .term-chip.active { animation: pulse-border 2s infinite; }
+
+    #banner .summary-box {
+      margin-top: 12px; padding: 10px 14px;
+      background: rgba(0,0,0,0.35); border-radius: 8px;
+      font-size: 12px; color: #94a3b8; line-height: 1.65;
+      border-left: 2px solid rgba(56,189,248,0.3);
+    }
+    #banner .confidence-row {
+      margin-top: 9px; display: flex; align-items: center; gap: 7px;
+    }
+    .conf-dot {
+      width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+    }
+    .conf-label { font-size: 9px; color: var(--subtext); letter-spacing: 1px; }
+
+    /* ── next wave strip ── */
+    #next-wave { margin-bottom: 18px; display: none; animation: fadeUp 0.5s 0.1s ease both; }
+    #next-wave .section-label {
+      font-size: 9px; letter-spacing: 3px; color: var(--muted); margin-bottom: 10px;
+    }
+    #next-wave .strip {
+      display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px;
+    }
+    .wave-card {
+      flex: 0 0 auto; padding: 12px 16px; border-radius: 12px;
+      min-width: 128px;
+    }
+    .wave-card .wc-time {
+      font-family: var(--mono); font-size: 22px; font-weight: 900; line-height: 1;
+    }
+    .wave-card .wc-sub { font-size: 10px; color: var(--subtext); margin-top: 4px; }
+    .wave-card .wc-mins { font-size: 9px; margin-top: 5px; }
+
+    /* ── terminal panel ── */
+    .term-panel {
+      background: rgba(13,24,41,0.7);
+      border-radius: 14px; overflow: hidden;
+      margin-bottom: 16px;
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border);
+      animation: fadeUp 0.5s 0.2s ease both;
+    }
+    .term-header {
+      padding: 12px 16px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+    }
+    .term-header-left { display: flex; align-items: center; gap: 10px; }
+    .term-badge {
+      width: 36px; height: 36px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--mono); font-size: 13px; font-weight: 900;
+    }
+    .term-name { font-size: 13px; font-weight: 700; color: var(--text); }
+    .term-count { font-size: 9px; color: var(--subtext); margin-top: 2px; }
+    .next-pax-badge {
+      padding: 6px 12px; border-radius: 20px; text-align: center;
+    }
+    .next-pax-time {
+      font-family: var(--mono); font-size: 17px; font-weight: 900; line-height: 1;
+    }
+    .next-pax-label { font-size: 8px; color: var(--subtext); letter-spacing: 1px; margin-top: 2px; }
+
+    /* col headers */
+    .col-headers {
+      display: grid;
+      grid-template-columns: 52px 1fr 66px 66px 78px;
+      gap: 6px; padding: 8px 14px 4px;
+    }
+    .col-hdr {
+      font-size: 8px; color: var(--muted); letter-spacing: 1.5px;
+    }
+    .col-hdr.right  { text-align: right; }
+    .col-hdr.center { text-align: center; }
+
+    /* flight row */
+    .flight-rows { padding: 6px 10px 10px; }
+    .flight-row {
+      display: grid;
+      grid-template-columns: 52px 1fr 66px 66px 78px;
+      gap: 6px; align-items: center;
+      padding: 9px 10px; border-radius: 8px;
+      margin-bottom: 5px;
+      background: rgba(255,255,255,0.03);
+      border-left: 2px solid transparent;
+      transition: background 0.2s;
+    }
+    .flight-row.landed { opacity: 0.38; }
+    .fr-flight {
+      font-family: var(--mono); font-size: 12px; font-weight: 700;
+      color: var(--text); letter-spacing: 0.5px;
+    }
+    .fr-origin { font-size: 11px; color: #94a3b8; line-height: 1.2; }
+    .fr-type   { font-size: 9px; color: var(--subtext); margin-top: 2px; }
+    .fr-time {
+      font-family: var(--mono); font-size: 14px; font-weight: 700;
+      text-align: center; line-height: 1;
+    }
+    .fr-delay  { font-size: 8px; color: #fb923c; text-align: center; margin-top: 2px; }
+    .fr-status { display: flex; align-items: center; justify-content: flex-end; gap: 5px; }
+    .fr-status-label { font-size: 8px; letter-spacing: 0.5px; }
+    .fr-ago    { font-size: 8px; color: var(--muted); text-align: right; margin-top: 2px; }
+
+    /* pulsing dot */
+    .dot-wrap { position: relative; width: 10px; height: 10px; flex-shrink: 0; }
+    .dot-ring {
+      position: absolute; inset: 0; border-radius: 50%;
+      opacity: 0.4; animation: ping 1.6s cubic-bezier(0,0,0.2,1) infinite;
+    }
+    .dot-core {
+      position: absolute; inset: 2px; border-radius: 50%;
+    }
+
+    /* no flights */
+    .no-flights {
+      text-align: center; padding: 22px;
+      font-size: 11px; color: var(--muted); letter-spacing: 1px;
+    }
+
+    /* ── footer bar ── */
+    #footer {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 11px 14px;
+      background: rgba(255,255,255,0.02);
+      border-radius: 10px; margin-top: 4px;
+    }
+    #footer .copy { font-size: 9px; color: var(--dim); letter-spacing: 1px; }
+    #footer .right { display: flex; align-items: center; gap: 10px; }
+    #refresh-label { font-size: 9px; color: var(--muted); letter-spacing: 1px; }
+    #refresh-btn {
+      padding: 4px 10px; border-radius: 6px;
+      border: 1px solid var(--dim); background: transparent;
+      color: var(--t1); font-family: var(--mono); font-size: 9px;
+      letter-spacing: 1px; cursor: pointer;
+    }
+    #refresh-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* spinner */
+    .spinner {
+      width: 14px; height: 14px; border-radius: 50%;
+      border: 2px solid var(--dim); border-top-color: var(--t1);
+      animation: spin 0.8s linear infinite; flex-shrink: 0;
+    }
+
+    /* ── empty / loading state ── */
+    #loading-state {
+      display: flex; align-items: center; justify-content: center;
+      padding: 70px 20px; gap: 14px;
+    }
+    #loading-state span {
+      font-size: 12px; color: var(--muted); letter-spacing: 2px;
+    }
+    #error-box {
+      background: rgba(248,113,113,0.08);
+      border: 1px solid rgba(248,113,113,0.2);
+      border-radius: 10px; padding: 12px 16px;
+      margin-bottom: 16px; font-size: 12px; color: #f87171; display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <div id="header">
+    <div>
+      <div class="label">CHANGI AIRPORT · SIN</div>
+      <div class="title">🌙 EARLY MORNING ARRIVALS</div>
+    </div>
+    <div>
+      <div id="clock">00:00<span class="tz">SGT · 03:00–07:00 WINDOW</span></div>
+    </div>
+  </div>
+
+  <div id="main">
+
+    <!-- BANNER -->
+    <div id="banner">
+      <div class="banner-label">⚡ RECOMMENDED ACTION WINDOW</div>
+      <div class="window-row">
+        <div>
+          <div class="window-times">
+            <span id="win-start" style="color:var(--t1)">--:--</span>
+            <span style="color:var(--muted);font-size:20px"> — </span>
+            <span id="win-end"   style="color:var(--t2)">--:--</span>
+          </div>
+          <div class="window-sub">
+            Peak passenger exit window · Target <span id="best-term" style="font-weight:800"></span>
+          </div>
+        </div>
+        <div class="term-chips" id="term-chips"></div>
+      </div>
+      <div class="summary-box" id="summary-text"></div>
+      <div class="confidence-row">
+        <div class="conf-dot" id="conf-dot"></div>
+        <span class="conf-label" id="conf-label"></span>
+      </div>
+    </div>
+
+    <!-- NEXT WAVE -->
+    <div id="next-wave">
+      <div class="section-label">NEXT PAX EXITS</div>
+      <div class="strip" id="wave-strip"></div>
+    </div>
+
+    <!-- ERROR -->
+    <div id="error-box"></div>
+
+    <!-- LOADING -->
+    <div id="loading-state">
+      <div class="spinner"></div>
+      <span>FETCHING ARRIVALS…</span>
+    </div>
+
+    <!-- TERMINALS -->
+    <div id="terminals"></div>
+
+    <!-- FOOTER -->
+    <div id="footer">
+      <span class="copy">DATA VIA CLAUDE AI · NOT FOR SAFETY-CRITICAL USE</span>
+      <div class="right">
+        <span id="refresh-label">REFRESH --s</span>
+        <button id="refresh-btn" onclick="triggerRefresh()">↺ NOW</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+  // ─── Config ───────────────────────────────────────────────────────────────
+  const TERMINALS     = ["T1","T2","T3","T4"];
+  const TERM_COLORS   = { T1:"#38bdf8", T2:"#34d399", T3:"#f59e0b", T4:"#f472b6" };
+  const TERM_LABELS   = { T1:"Terminal 1", T2:"Terminal 2", T3:"Terminal 3", T4:"Terminal 4" };
+  const INTL_DELAY    = 50;
+  const DOM_DELAY     = 20;
+  const REFRESH_SECS  = 120;
+
+  let refreshTimer = null;
+  let tickTimer    = null;
+  let tickLeft     = REFRESH_SECS;
+  let isLoading    = false;
+
+  // ─── Time helpers ─────────────────────────────────────────────────────────
+  function nowSGT() {
+    return new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Singapore" }));
+  }
+  function fmtHHMM(d) {
+    return d.toLocaleTimeString("en-SG", {
+      timeZone:"Asia/Singapore", hour:"2-digit", minute:"2-digit", hour12:false
+    });
+  }
+  function parseSGT(hhmm) {
+    const [h,m] = hhmm.split(":").map(Number);
+    const d = nowSGT(); d.setHours(h,m,0,0); return d;
+  }
+  function minsUntil(d) { return Math.round((d - nowSGT()) / 60000); }
+
+  function statusInfo(tdMins) {
+    if (tdMins < 0)   return { color:"#64748b", label:"LANDED" };
+    if (tdMins < 15)  return { color:"#f87171", label:"IMMINENT" };
+    if (tdMins < 40)  return { color:"#fb923c", label:"SOON" };
+    return               { color:"#34d399", label:"UPCOMING" };
+  }
+
+  // ─── Clock ────────────────────────────────────────────────────────────────
+  function updateClock() {
+    document.getElementById("clock").childNodes[0].textContent = fmtHHMM(nowSGT());
+  }
+
+  // ─── Claude fetch ─────────────────────────────────────────────────────────
+  async function fetchData() {
+    const now     = nowSGT();
+    const timeStr = fmtHHMM(now);
+    const dateStr = now.toLocaleDateString("en-SG", {
+      timeZone:"Asia/Singapore", weekday:"long", year:"numeric", month:"long", day:"numeric"
+    });
+
+    const prompt = `You are a Changi Airport flight data assistant. Current Singapore time: ${timeStr} SGT, ${dateStr}.
+
+A PHV driver works the early morning shift (3:00 AM – 7:00 AM SGT). They need all flights arriving at Changi Airport (SIN) from NOW until 07:00 SGT today, grouped by terminal.
+
+Return ONLY valid JSON — no markdown, no explanation:
+
+{
+  "terminals": {
+    "T1": [
+      {
+        "flight": "SQ123",
+        "airline": "Singapore Airlines",
+        "origin": "London (LHR)",
+        "type": "international",
+        "scheduledTouchdown": "04:35",
+        "estimatedTouchdown": "04:35",
+        "status": "On Time",
+        "delayMins": 0,
+        "exitTime": "05:25"
+      }
+    ],
+    "T2": [],
+    "T3": [],
+    "T4": []
+  },
+  "summary": "2-sentence plain-English summary: which terminals are busiest, any notable gaps.",
+  "bestWindowStart": "04:10",
+  "bestWindowEnd": "05:30",
+  "bestTerminal": "T1",
+  "confidence": "medium"
+}
+
+Rules:
+- Only flights touching down between NOW (${timeStr}) and 07:00 SGT.
+- exitTime = estimatedTouchdown + 50 min for international, + 20 min for domestic.
+- If no flights for a terminal, return [].
+- All times in HH:MM 24-hour SGT.
+- bestWindowStart/End = busiest passenger-exit cluster across all terminals.
+- bestTerminal = terminal with most pax exiting during that window.
+- confidence: "high" if certain, "medium" if approximate, "low" if guessing.
+- Use your knowledge of typical scheduled services at SIN for early morning on ${dateStr.split(",")[0]}.`;
+
+    const res  = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1200,
+        messages: [{ role:"user", content: prompt }]
+      })
+    });
+    const json  = await res.json();
+    const raw   = json?.content?.[0]?.text || "";
+    const clean = raw.replace(/```json|```/g,"").trim();
+    return JSON.parse(clean);
+  }
+
+  // ─── Render helpers ───────────────────────────────────────────────────────
+  function dotHTML(color) {
+    return `<div class="dot-wrap">
+      <div class="dot-ring"  style="background:${color}"></div>
+      <div class="dot-core"  style="background:${color}"></div>
+    </div>`;
+  }
+
+  function renderBanner(data) {
+    const banner = document.getElementById("banner");
+    if (!data.bestWindowStart) { banner.style.display="none"; return; }
+
+    const c = TERM_COLORS[data.bestTerminal] || "var(--t1)";
+    document.getElementById("win-start").textContent = data.bestWindowStart;
+    document.getElementById("win-end").textContent   = data.bestWindowEnd;
+    const bt = document.getElementById("best-term");
+    bt.textContent = data.bestTerminal;
+    bt.style.color = c;
+
+    // chips
+    const chips = document.getElementById("term-chips");
+    chips.innerHTML = "";
+    TERMINALS.forEach(t => {
+      const hasFlights = (data.terminals[t]||[]).length > 0;
+      if (!hasFlights) return;
+      const tc = TERM_COLORS[t];
+      const isActive = t === data.bestTerminal;
+      chips.innerHTML += `<div class="term-chip ${isActive?'active':''}"
+        style="color:${isActive?tc:'var(--muted)'};
+               background:${isActive?tc+'22':'rgba(255,255,255,0.03)'};
+               border-color:${isActive?tc:'var(--dim)'};">${t}</div>`;
+    });
+
+    document.getElementById("summary-text").textContent = data.summary || "";
+
+    const confColors = { high:"#34d399", medium:"#fb923c", low:"#f87171" };
+    const cc = confColors[data.confidence] || "#64748b";
+    document.getElementById("conf-dot").style.background = cc;
+    document.getElementById("conf-label").textContent =
+      `${(data.confidence||"").toUpperCase()} CONFIDENCE · AI-generated schedule estimate`;
+
+    banner.style.display = "block";
+  }
+
+  function renderNextWave(data) {
+    const allFlights = TERMINALS.flatMap(t =>
+      (data.terminals[t]||[]).map(f => ({...f, terminal:t}))
+    );
+    const upcoming = allFlights
+      .filter(f => minsUntil(parseSGT(f.exitTime)) > -5)
+      .sort((a,b) => parseSGT(a.exitTime) - parseSGT(b.exitTime))
+      .slice(0,3);
+
+    const nw = document.getElementById("next-wave");
+    if (!upcoming.length) { nw.style.display="none"; return; }
+
+    const strip = document.getElementById("wave-strip");
+    strip.innerHTML = "";
+    upcoming.forEach(f => {
+      const c       = TERM_COLORS[f.terminal];
+      const exMins  = minsUntil(parseSGT(f.exitTime));
+      const minsTxt = exMins >= 0 ? `${exMins} min away` : `${Math.abs(exMins)}m ago`;
+      const minsClr = exMins < 20 ? "#f87171" : "var(--subtext)";
+      strip.innerHTML += `
+        <div class="wave-card" style="background:${c}12;border:1px solid ${c}33;">
+          <div class="wc-time" style="color:${c}">${f.exitTime}</div>
+          <div class="wc-sub">${f.terminal} · ${f.flight}</div>
+          <div class="wc-mins" style="color:${minsClr}">${minsTxt}</div>
+        </div>`;
+    });
+    nw.style.display = "block";
+  }
+
+  function renderTerminals(data) {
+    const container = document.getElementById("terminals");
+    container.innerHTML = "";
+
+    TERMINALS.forEach(t => {
+      const flights = data.terminals[t] || [];
+      const c       = TERM_COLORS[t];
+      const upcoming = flights.filter(f => minsUntil(parseSGT(f.exitTime)) > -10);
+      const next    = upcoming[0] || null;
+      const nextExMins = next ? minsUntil(parseSGT(next.exitTime)) : null;
+
+      // next pax badge color
+      const badgeColor = !next ? "var(--muted)"
+        : nextExMins < 0  ? "#64748b"
+        : nextExMins < 20 ? "#f87171"
+        : nextExMins < 45 ? "#fb923c"
+        : c;
+
+      const badgeBg  = !next ? "rgba(100,116,139,0.1)"  : `${badgeColor}18`;
+      const badgeBdr = !next ? "var(--dim)"              : `${badgeColor}55`;
+
+      // flight rows HTML
+      let rowsHTML = "";
+      if (flights.length === 0) {
+        rowsHTML = `<div class="no-flights">— NO ARRIVALS IN WINDOW —</div>`;
+      } else {
+        rowsHTML = `
+          <div class="col-headers">
+            <div class="col-hdr">FLIGHT</div>
+            <div class="col-hdr">ORIGIN</div>
+            <div class="col-hdr center">TDOWN</div>
+            <div class="col-hdr center">EXIT</div>
+            <div class="col-hdr right">STATUS</div>
+          </div>
+          <div class="flight-rows">`;
+
+        flights.forEach(f => {
+          const tdMins  = minsUntil(parseSGT(f.estimatedTouchdown));
+          const exMins  = minsUntil(parseSGT(f.exitTime));
+          const st      = statusInfo(tdMins);
+          const landed  = tdMins < 0 ? "landed" : "";
+          const tdColor = f.delayMins > 0 ? "#fb923c" : "var(--text)";
+          const exColor = exMins < 0 ? "#64748b" : exMins < 20 ? "#f87171" : c;
+          const agoTxt  = tdMins >= 0 ? `in ${tdMins}m` : `${Math.abs(tdMins)}m ago`;
+
+          rowsHTML += `
+            <div class="flight-row ${landed}" style="border-left-color:${landed?'var(--dim)':c}">
+              <div class="fr-flight">${f.flight}</div>
+              <div>
+                <div class="fr-origin">${f.origin}</div>
+                <div class="fr-type">${f.type==='international'?'✈ INTL':'🛫 DOM'} · ${f.airline.split(" ").pop()}</div>
+              </div>
+              <div>
+                <div class="fr-time" style="color:${tdColor}">${f.estimatedTouchdown}</div>
+                ${f.delayMins>0?`<div class="fr-delay">+${f.delayMins}m</div>`:''}
+              </div>
+              <div>
+                <div class="fr-time" style="color:${exColor}">${f.exitTime}</div>
+              </div>
+              <div>
+                <div class="fr-status">
+                  ${dotHTML(st.color)}
+                  <span class="fr-status-label" style="color:${st.color}">${st.label}</span>
+                </div>
+                <div class="fr-ago">${agoTxt}</div>
+              </div>
+            </div>`;
+        });
+
+        rowsHTML += `</div>`;
+      }
+
+      container.innerHTML += `
+        <div class="term-panel">
+          <div class="term-header" style="background:linear-gradient(90deg,${c}14 0%,transparent 100%);border-bottom-color:${c}18;">
+            <div class="term-header-left">
+              <div class="term-badge" style="background:${c}1e;border:1px solid ${c}40;color:${c};">${t}</div>
+              <div>
+                <div class="term-name">${TERM_LABELS[t]}</div>
+                <div class="term-count">${flights.length} flight${flights.length!==1?'s':''} · 3AM–7AM window</div>
+              </div>
+            </div>
+            <div class="next-pax-badge" style="background:${badgeBg};border:1px solid ${badgeBdr};">
+              ${next
+                ? `<div class="next-pax-time" style="color:${badgeColor}">${next.exitTime}</div>
+                   <div class="next-pax-label">NEXT PAX</div>`
+                : `<div style="font-size:9px;color:var(--muted);letter-spacing:1px;">NO MORE FLIGHTS</div>`
+              }
+            </div>
+          </div>
+          ${rowsHTML}
+        </div>`;
+    });
+  }
+
+  // ─── Main load ────────────────────────────────────────────────────────────
+  async function loadData() {
+    if (isLoading) return;
+    isLoading = true;
+
+    const btn    = document.getElementById("refresh-btn");
+    const errBox = document.getElementById("error-box");
+    btn.disabled = true;
+    errBox.style.display = "none";
+
+    try {
+      const data = await fetchData();
+
+      document.getElementById("loading-state").style.display = "none";
+      renderBanner(data);
+      renderNextWave(data);
+      renderTerminals(data);
+
+    } catch(e) {
+      errBox.textContent = "⚠ Could not fetch data. Will retry automatically.";
+      errBox.style.display = "block";
+      if (!document.getElementById("terminals").innerHTML) {
+        document.getElementById("loading-state").style.display = "none";
+      }
+    } finally {
+      isLoading = false;
+      btn.disabled = false;
+      tickLeft = REFRESH_SECS;
+    }
+  }
+
+  function triggerRefresh() { loadData(); }
+
+  // ─── Tick ─────────────────────────────────────────────────────────────────
+  function tick() {
+    tickLeft--;
+    document.getElementById("refresh-label").textContent = `REFRESH ${tickLeft}s`;
+    if (tickLeft <= 0) { tickLeft = REFRESH_SECS; loadData(); }
+    updateClock();
+    // re-render wave strip every tick (live countdowns)
+  }
+
+  // ─── Boot ─────────────────────────────────────────────────────────────────
+  updateClock();
+  loadData();
+  tickTimer = setInterval(tick, 1000);
+  </script>
+</body>
+</html>
