@@ -442,7 +442,7 @@
       <h3>ℹ App Info</h3>
       <div class="set-info-row"><span class="set-info-key">App</span><span class="set-info-val">Changi PHV Arrivals</span></div>
       <div class="set-info-row"><span class="set-info-key">Window</span><span class="set-info-val">03:00 – 07:00 SGT</span></div>
-      <div class="set-info-row"><span class="set-info-key">AI Provider</span><span class="set-info-val">Google Gemini 1.5 Flash</span></div>
+      <div class="set-info-row"><span class="set-info-key">AI Provider</span><span class="set-info-val">Google Gemini 2.5 Flash</span></div>
       <div class="set-info-row"><span class="set-info-key">Data refresh</span><span class="set-info-val">Manual (tap Check Now)</span></div>
       <div class="set-info-row"><span class="set-info-key">Version</span><span class="set-info-val">2.0.0</span></div>
     </div>
@@ -495,11 +495,11 @@
   }
 
   // ── API Key ────────────────────────────────────────────────────────────────
-  function getKey()  { return localStorage.getItem(STORAGE_KEY)||""; }
+  function getKey()  { return localStorage.getItem("mdl_gemini_api_key")||""; }
   function saveKey() {
     const v=document.getElementById("api-input").value.trim();
     if(!v){alert("Please enter your Gemini API key.");return;}
-    localStorage.setItem(STORAGE_KEY,v);
+    localStorage.setItem("mdl_gemini_api_key",v);
     renderApiStatus();
     const c=document.getElementById("set-confirm");
     c.style.display="block"; setTimeout(()=>c.style.display="none",3000);
@@ -507,7 +507,7 @@
   }
   function clearKey() {
     if(!confirm("Clear saved API key?"))return;
-    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem("mdl_gemini_api_key");
     document.getElementById("api-input").value="";
     renderApiStatus();
   }
@@ -572,7 +572,7 @@ Rules:
 - confidence: "high" certain, "medium" approximate, "low" guessing.
 - Use your knowledge of typical SIN scheduled services on ${dateStr.split(",")[0]} early morning.`;
 
-    const url=`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${key}`;
+    const url=`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`;
     const res=await fetch(url,{
       method:"POST",
       headers:{"Content-Type":"application/json"},
