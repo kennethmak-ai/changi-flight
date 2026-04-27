@@ -7,25 +7,39 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Changi PHV" />
   <title>Changi PHV · Early Morning Arrivals</title>
+
+  <!-- PWA icon: bright yellow airplane, base64 SVG as PNG -->
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='40' fill='%23FFD600'/%3E%3Cg transform='translate(96,96) rotate(-45)'%3E%3Cpath d='M0-60 C8-60 14-54 14-46 L14-10 L50 10 L50 22 L14 14 L14 40 L26 48 L26 58 L0 50 L-26 58 L-26 48 L-14 40 L-14 14 L-50 22 L-50 10 L-14-10 L-14-46 C-14-54-8-60 0-60Z' fill='%23111'/%3E%3C/g%3E%3C/svg%3E" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='40' fill='%23FFD600'/%3E%3Cg transform='translate(96,96) rotate(-45)'%3E%3Cpath d='M0-60 C8-60 14-54 14-46 L14-10 L50 10 L50 22 L14 14 L14 40 L26 48 L26 58 L0 50 L-26 58 L-26 48 L-14 40 L-14 14 L-50 22 L-50 10 L-14-10 L-14-46 C-14-54-8-60 0-60Z' fill='%23111'/%3E%3C/g%3E%3C/svg%3E" />
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;900&family=Syne:wght@400;700;800&display=swap" rel="stylesheet" />
+
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg:      #060d1a;
-      --surface: #0d1829;
-      --border:  rgba(255,255,255,0.06);
-      --t1:      #38bdf8;
-      --t2:      #34d399;
-      --t3:      #f59e0b;
-      --t4:      #f472b6;
-      --muted:   #334155;
-      --dim:     #1e293b;
-      --text:    #e2e8f0;
-      --subtext: #64748b;
-      --mono:    'JetBrains Mono', monospace;
-      --sans:    'Syne', sans-serif;
+      --bg:       #060d1a;
+      --surface:  #0d1829;
+      --card:     #101f35;
+      --border:   rgba(255,255,255,0.07);
+      --yellow:   #FFD600;
+      --green:    #22c55e;
+      --green-bg: rgba(34,197,94,0.12);
+      --amber:    #f59e0b;
+      --amber-bg: rgba(245,158,11,0.12);
+      --red:      #ef4444;
+      --red-bg:   rgba(239,68,68,0.12);
+      --t1:       #38bdf8;
+      --t2:       #34d399;
+      --t3:       #f59e0b;
+      --t4:       #f472b6;
+      --muted:    #334155;
+      --dim:      #1e293b;
+      --text:     #f1f5f9;
+      --sub:      #64748b;
+      --mono:     'JetBrains Mono', monospace;
+      --sans:     'Syne', sans-serif;
     }
 
     html, body {
@@ -33,220 +47,288 @@
       font-family: var(--sans); min-height: 100vh;
       -webkit-font-smoothing: antialiased;
     }
-    ::-webkit-scrollbar { width: 3px; height: 3px; }
-    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar { width: 3px; }
     ::-webkit-scrollbar-thumb { background: var(--dim); border-radius: 4px; }
 
-    @keyframes spin   { to { transform: rotate(360deg); } }
-    @keyframes ping   { 75%,100% { transform: scale(2.2); opacity: 0; } }
-    @keyframes fadeUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
-    @keyframes pulse-border {
-      0%,100% { box-shadow: 0 0 0 0 rgba(56,189,248,0.3); }
-      50%     { box-shadow: 0 0 0 6px rgba(56,189,248,0); }
-    }
+    @keyframes spin    { to { transform: rotate(360deg); } }
+    @keyframes fadeUp  { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes pulse   { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
+    @keyframes ping    { 75%,100% { transform:scale(2); opacity:0; } }
 
-    /* ── TAB BAR ── */
+    /* ── STICKY HEADER ── */
     #tab-bar {
       position: sticky; top: 0; z-index: 50;
-      background: rgba(6,13,26,0.95);
-      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      background: rgba(6,13,26,0.96);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
       border-bottom: 1px solid var(--border);
     }
     #header-row {
-      padding: 14px 18px;
-      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 16px;
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
     }
-    #header-row .label { font-size: 9px; letter-spacing: 4px; color: var(--t1); text-transform: uppercase; margin-bottom: 3px; }
-    #header-row .title { font-family: var(--mono); font-size: 17px; font-weight: 900; color: var(--text); letter-spacing: -0.5px; }
-    #clock             { font-family: var(--mono); font-size: 28px; font-weight: 900; color: var(--t1); line-height: 1; text-align: right; }
-    #clock .tz         { font-size: 8px; color: var(--muted); letter-spacing: 2px; margin-top: 3px; display: block; }
+    .hdr-left { display: flex; align-items: center; gap: 10px; }
+    .app-icon {
+      width: 40px; height: 40px; border-radius: 10px;
+      background: var(--yellow); flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .app-icon svg { width: 24px; height: 24px; }
+    .hdr-titles .sub  { font-size: 9px; letter-spacing: 3px; color: var(--yellow); text-transform: uppercase; margin-bottom: 2px; }
+    .hdr-titles .main { font-family: var(--mono); font-size: 14px; font-weight: 900; color: var(--text); letter-spacing: -0.3px; }
+    #clock { text-align: right; }
+    #clock .time { font-family: var(--mono); font-size: 24px; font-weight: 900; color: var(--yellow); line-height: 1; }
+    #clock .tz   { font-size: 9px; color: var(--sub); letter-spacing: 1px; margin-top: 2px; }
 
-    #tabs { display: flex; border-top: 1px solid var(--border); }
+    #tabs { display: flex; }
     .tab-btn {
-      flex: 1; padding: 10px; text-align: center;
-      font-family: var(--mono); font-size: 10px; font-weight: 700;
-      letter-spacing: 2px; color: var(--subtext);
-      background: transparent; border: none; cursor: pointer;
-      border-bottom: 2px solid transparent; transition: all 0.2s;
+      flex: 1; padding: 9px 8px; text-align: center;
+      font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: 2px;
+      color: var(--sub); background: transparent; border: none; cursor: pointer;
+      border-bottom: 2px solid transparent; border-top: 1px solid var(--border);
+      transition: all 0.2s;
     }
-    .tab-btn.active { color: var(--t1); border-bottom-color: var(--t1); }
+    .tab-btn.active { color: var(--yellow); border-bottom-color: var(--yellow); }
 
     /* ── PAGES ── */
-    .page { display: none; padding: 16px 18px; max-width: 740px; margin: 0 auto; }
-    .page.active { display: block; }
+    .page { display: none; padding: 14px 14px 24px; max-width: 480px; margin: 0 auto; }
+    .page.active { display: block; animation: fadeUp 0.3s ease both; }
 
-    /* ── BANNER ── */
-    #banner {
-      background: linear-gradient(135deg, rgba(56,189,248,0.1) 0%, rgba(52,211,153,0.06) 100%);
-      border: 1px solid rgba(56,189,248,0.22);
-      border-radius: 14px; padding: 16px 18px; margin-bottom: 18px;
-      animation: fadeUp 0.5s ease both; display: none;
+    /* ── GO SIGNAL ── */
+    #signal-card {
+      border-radius: 14px; padding: 16px 18px; margin-bottom: 14px;
+      display: flex; align-items: center; justify-content: space-between;
+      border: 1px solid transparent;
     }
-    #banner .banner-label { font-size: 9px; letter-spacing: 3px; color: var(--subtext); margin-bottom: 10px; }
-    #banner .window-row   { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
-    #banner .window-times { font-family: var(--mono); font-size: 30px; font-weight: 900; line-height: 1; }
-    #banner .window-sub   { font-size: 11px; color: var(--subtext); margin-top: 5px; }
-    #banner .term-chips   { display: flex; gap: 6px; }
-    .term-chip {
-      width: 34px; height: 34px; border-radius: 8px;
+    #signal-card.go     { background: var(--green-bg); border-color: rgba(34,197,94,0.3); }
+    #signal-card.maybe  { background: var(--amber-bg); border-color: rgba(245,158,11,0.3); }
+    #signal-card.stay   { background: var(--red-bg);   border-color: rgba(239,68,68,0.3); }
+    #signal-card.loading{ background: rgba(255,255,255,0.03); border-color: var(--border); }
+    .sig-left .sig-label { font-size: 9px; letter-spacing: 3px; margin-bottom: 5px; }
+    .sig-left .sig-word  { font-family: var(--mono); font-size: 38px; font-weight: 900; line-height: 1; }
+    .sig-left .sig-sub   { font-size: 12px; margin-top: 5px; }
+    .sig-right { text-align: right; }
+    .sig-right .sig-term-label { font-size: 10px; margin-bottom: 6px; }
+    .sig-right .sig-term-box {
+      width: 52px; height: 52px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--mono); font-size: 18px; font-weight: 900;
+      margin-left: auto;
+    }
+    .sig-right .sig-pax { font-size: 11px; margin-top: 5px; }
+
+    /* ── TIMELINE ── */
+    #timeline-wrap { margin-bottom: 14px; }
+    .section-label { font-size: 9px; letter-spacing: 3px; color: var(--sub); margin-bottom: 8px; }
+    #timeline-grid { display: flex; flex-direction: column; gap: 5px; }
+    .tl-row { display: flex; align-items: center; gap: 6px; }
+    .tl-badge {
+      width: 26px; height: 26px; border-radius: 6px; flex-shrink: 0;
       display: flex; align-items: center; justify-content: center;
       font-family: var(--mono); font-size: 11px; font-weight: 900;
-      border: 1px solid var(--dim); background: rgba(255,255,255,0.03); color: var(--muted);
     }
-    .term-chip.active { animation: pulse-border 2s infinite; }
-    #banner .summary-box {
-      margin-top: 12px; padding: 10px 14px;
-      background: rgba(0,0,0,0.35); border-radius: 8px;
-      font-size: 12px; color: #94a3b8; line-height: 1.65;
-      border-left: 2px solid rgba(56,189,248,0.3);
+    .tl-lane {
+      flex: 1; height: 30px; border-radius: 6px;
+      background: var(--card); border: 1px solid var(--border);
+      position: relative; overflow: hidden;
     }
-    #banner .confidence-row { margin-top: 9px; display: flex; align-items: center; gap: 7px; }
-    .conf-dot   { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
-    .conf-label { font-size: 9px; color: var(--subtext); letter-spacing: 1px; }
+    .tl-now {
+      position: absolute; top: 0; bottom: 0; width: 2px;
+      background: var(--red); z-index: 3;
+    }
+    .tl-block {
+      position: absolute; top: 5px; bottom: 5px; width: 6px;
+      border-radius: 2px; z-index: 2;
+    }
+    .tl-lbl {
+      position: absolute; top: 7px;
+      font-family: var(--mono); font-size: 9px; font-weight: 700;
+      white-space: nowrap; z-index: 2;
+    }
+    .tl-empty {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; color: var(--muted); letter-spacing: 1px;
+    }
+    .tl-axis {
+      display: flex; justify-content: space-between;
+      margin-left: 32px; padding-top: 4px;
+    }
+    .tl-axis span { font-size: 9px; color: var(--muted); }
+    .tl-now-label {
+      margin-left: 32px; position: relative; height: 16px; margin-top: 2px;
+    }
+    .tl-now-label span {
+      position: absolute; font-size: 9px; color: var(--red);
+      font-family: var(--mono); font-weight: 700; white-space: nowrap;
+      transform: translateX(-50%);
+    }
+    .tl-legend {
+      display: flex; gap: 14px; margin-left: 32px; margin-top: 6px;
+    }
+    .tl-legend-item { display: flex; align-items: center; gap: 4px; font-size: 10px; color: var(--sub); }
 
-    /* ── NEXT WAVE ── */
-    #next-wave { margin-bottom: 18px; display: none; animation: fadeUp 0.5s 0.1s ease both; }
-    #next-wave .section-label { font-size: 9px; letter-spacing: 3px; color: var(--muted); margin-bottom: 10px; }
-    #next-wave .strip { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; }
-    .wave-card { flex: 0 0 auto; padding: 12px 16px; border-radius: 12px; min-width: 128px; }
-    .wave-card .wc-time { font-family: var(--mono); font-size: 22px; font-weight: 900; line-height: 1; }
-    .wave-card .wc-sub  { font-size: 10px; color: var(--subtext); margin-top: 4px; }
-    .wave-card .wc-mins { font-size: 9px; margin-top: 5px; }
-
-    /* ── TERMINAL PANELS ── */
-    .term-panel {
-      background: rgba(13,24,41,0.7); border-radius: 14px; overflow: hidden;
-      margin-bottom: 16px; backdrop-filter: blur(8px); border: 1px solid var(--border);
-      animation: fadeUp 0.5s 0.2s ease both;
+    /* ── TERMINAL CARDS ── */
+    #term-cards { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
+    .term-card {
+      background: var(--card); border-radius: 12px; border: 1px solid var(--border); overflow: hidden;
     }
-    .term-header {
-      padding: 12px 16px; display: flex; align-items: center; justify-content: space-between;
+    .term-card.best { border-color: rgba(255,214,0,0.3); }
+    .tc-header {
+      padding: 10px 14px; display: flex; align-items: center; justify-content: space-between;
       border-bottom: 1px solid var(--border);
     }
-    .term-header-left { display: flex; align-items: center; gap: 10px; }
-    .term-badge {
-      width: 36px; height: 36px; border-radius: 8px;
+    .tc-header-left  { display: flex; align-items: center; gap: 8px; }
+    .tc-badge {
+      width: 30px; height: 30px; border-radius: 7px; flex-shrink: 0;
       display: flex; align-items: center; justify-content: center;
-      font-family: var(--mono); font-size: 13px; font-weight: 900;
+      font-family: var(--mono); font-size: 12px; font-weight: 900;
     }
-    .term-name  { font-size: 13px; font-weight: 700; color: var(--text); }
-    .term-count { font-size: 9px; color: var(--subtext); margin-top: 2px; }
-    .next-pax-badge { padding: 6px 12px; border-radius: 20px; text-align: center; }
-    .next-pax-time  { font-family: var(--mono); font-size: 17px; font-weight: 900; line-height: 1; }
-    .next-pax-label { font-size: 8px; color: var(--subtext); letter-spacing: 1px; margin-top: 2px; }
-    .col-headers {
-      display: grid; grid-template-columns: 52px 1fr 66px 66px 78px;
-      gap: 6px; padding: 8px 14px 4px;
+    .tc-name   { font-size: 13px; font-weight: 700; color: var(--text); }
+    .tc-count  { font-size: 10px; color: var(--sub); margin-top: 1px; }
+    .best-pill {
+      font-size: 9px; padding: 3px 9px; border-radius: 20px;
+      background: var(--yellow); color: #111; font-weight: 700; letter-spacing: 1px;
     }
-    .col-hdr        { font-size: 8px; color: var(--muted); letter-spacing: 1.5px; }
-    .col-hdr.right  { text-align: right; }
-    .col-hdr.center { text-align: center; }
-    .flight-rows { padding: 6px 10px 10px; }
-    .flight-row {
-      display: grid; grid-template-columns: 52px 1fr 66px 66px 78px;
-      gap: 6px; align-items: center; padding: 9px 10px; border-radius: 8px;
-      margin-bottom: 5px; background: rgba(255,255,255,0.03);
-      border-left: 2px solid transparent; transition: background 0.2s;
+    .tc-times  { font-family: var(--mono); font-size: 12px; color: var(--sub); }
+    .tc-noflight { font-size: 11px; color: var(--muted); }
+
+    .tc-flights { padding: 8px 14px 10px; }
+    .tc-col-hdr {
+      display: grid; grid-template-columns: 1fr 64px 64px;
+      font-size: 9px; color: var(--muted); letter-spacing: 1.5px;
+      padding-bottom: 6px; border-bottom: 1px solid var(--border); margin-bottom: 4px;
     }
-    .flight-row.landed { opacity: 0.38; }
-    .fr-flight  { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--text); letter-spacing: 0.5px; }
-    .fr-origin  { font-size: 11px; color: #94a3b8; line-height: 1.2; }
-    .fr-type    { font-size: 9px; color: var(--subtext); margin-top: 2px; }
-    .fr-time    { font-family: var(--mono); font-size: 14px; font-weight: 700; text-align: center; line-height: 1; }
-    .fr-delay   { font-size: 8px; color: #fb923c; text-align: center; margin-top: 2px; }
-    .fr-status  { display: flex; align-items: center; justify-content: flex-end; gap: 5px; }
-    .fr-status-label { font-size: 8px; letter-spacing: 0.5px; }
-    .fr-ago     { font-size: 8px; color: var(--muted); text-align: right; margin-top: 2px; }
-    .dot-wrap   { position: relative; width: 10px; height: 10px; flex-shrink: 0; }
-    .dot-ring   { position: absolute; inset: 0; border-radius: 50%; opacity: 0.4; animation: ping 1.6s cubic-bezier(0,0,0.2,1) infinite; }
-    .dot-core   { position: absolute; inset: 2px; border-radius: 50%; }
-    .no-flights { text-align: center; padding: 22px; font-size: 11px; color: var(--muted); letter-spacing: 1px; }
+    .tc-col-hdr span:not(:first-child) { text-align: center; }
+    .tc-flight-row {
+      display: grid; grid-template-columns: 1fr 64px 64px;
+      padding: 6px 0; border-bottom: 1px solid var(--border); align-items: center;
+    }
+    .tc-flight-row:last-child { border-bottom: none; }
+    .tc-flight-row.past { opacity: 0.35; }
+    .fr-info .fr-num    { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--text); }
+    .fr-info .fr-origin { font-size: 10px; color: var(--sub); margin-top: 1px; }
+    .fr-land { font-family: var(--mono); font-size: 13px; text-align: center; }
+    .fr-exit { font-family: var(--mono); font-size: 13px; font-weight: 700; text-align: center; }
+
+    /* ── NO DATA ── */
+    #no-key-msg {
+      background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.25);
+      border-radius: 12px; padding: 18px; text-align: center; margin-bottom: 14px; display: none;
+    }
+    #no-key-msg .nk-icon { font-size: 28px; margin-bottom: 8px; }
+    #no-key-msg .nk-title { font-size: 14px; font-weight: 700; color: var(--amber); margin-bottom: 6px; }
+    #no-key-msg .nk-sub   { font-size: 12px; color: var(--sub); line-height: 1.6; }
+
+    #error-box {
+      background: var(--red-bg); border: 1px solid rgba(239,68,68,0.25);
+      border-radius: 12px; padding: 12px 14px; margin-bottom: 14px;
+      font-size: 12px; color: var(--red); line-height: 1.6; display: none;
+    }
 
     /* ── FOOTER ── */
     #footer {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 11px 14px; background: rgba(255,255,255,0.02);
-      border-radius: 10px; margin-top: 4px;
+      padding: 10px 12px; background: rgba(255,255,255,0.02);
+      border-radius: 10px; border: 1px solid var(--border);
     }
-    #footer .copy  { font-size: 9px; color: var(--dim); letter-spacing: 1px; }
+    #footer .copy  { font-size: 9px; color: var(--muted); letter-spacing: 1px; }
     #footer .right { display: flex; align-items: center; gap: 10px; }
-    #refresh-label { font-size: 9px; color: var(--muted); letter-spacing: 1px; }
+    #last-checked  { font-size: 9px; color: var(--sub); }
     #refresh-btn {
-      padding: 4px 10px; border-radius: 6px; border: 1px solid var(--dim);
-      background: transparent; color: var(--t1); font-family: var(--mono);
-      font-size: 9px; letter-spacing: 1px; cursor: pointer;
+      padding: 6px 14px; border-radius: 6px; border: 1px solid var(--yellow);
+      background: transparent; color: var(--yellow); font-family: var(--mono);
+      font-size: 10px; font-weight: 700; letter-spacing: 1px; cursor: pointer;
+      transition: background 0.2s;
     }
+    #refresh-btn:hover   { background: rgba(255,214,0,0.1); }
     #refresh-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-    .spinner {
-      width: 14px; height: 14px; border-radius: 50%;
-      border: 2px solid var(--dim); border-top-color: var(--t1);
-      animation: spin 0.8s linear infinite; flex-shrink: 0;
-    }
-    #loading-state {
-      display: flex; align-items: center; justify-content: center;
-      padding: 70px 20px; gap: 14px;
-    }
-    #loading-state span { font-size: 12px; color: var(--muted); letter-spacing: 2px; }
-    #error-box {
-      background: rgba(248,113,113,0.08); border: 1px solid rgba(248,113,113,0.2);
-      border-radius: 10px; padding: 12px 16px; margin-bottom: 16px;
-      font-size: 12px; color: #f87171; display: none; line-height: 1.6;
-    }
 
-    /* ── SETTINGS PAGE ── */
-    .settings-section {
-      background: rgba(13,24,41,0.7); border: 1px solid var(--border);
-      border-radius: 14px; padding: 20px; margin-bottom: 16px;
+    /* ── LOADING SPINNER ── */
+    #loading-state {
+      display: none; align-items: center; justify-content: center;
+      padding: 60px 20px; gap: 14px;
     }
-    .settings-section h3 {
-      font-family: var(--mono); font-size: 11px; font-weight: 700;
-      color: var(--t1); letter-spacing: 3px; text-transform: uppercase;
+    #loading-state.show { display: flex; }
+    .spinner {
+      width: 18px; height: 18px; border-radius: 50%;
+      border: 2px solid var(--dim); border-top-color: var(--yellow);
+      animation: spin 0.8s linear infinite;
+    }
+    #loading-state span { font-size: 11px; color: var(--sub); letter-spacing: 2px; }
+
+    /* ── SETTINGS ── */
+    .set-section {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 18px; margin-bottom: 14px;
+    }
+    .set-section h3 {
+      font-family: var(--mono); font-size: 10px; font-weight: 700;
+      color: var(--yellow); letter-spacing: 3px; text-transform: uppercase;
       margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--border);
     }
-    .setting-row   { margin-bottom: 16px; }
-    .setting-label { font-size: 10px; color: var(--subtext); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; display: block; }
-    .setting-input {
-      width: 100%; padding: 11px 14px; border-radius: 8px;
+    .set-row { margin-bottom: 14px; }
+    .set-lbl { font-size: 10px; color: var(--sub); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 7px; display: block; }
+    .set-input {
+      width: 100%; padding: 10px 13px; border-radius: 8px;
       border: 1px solid var(--dim); background: rgba(0,0,0,0.4);
-      color: var(--text); font-family: var(--mono); font-size: 13px;
-      outline: none; transition: border-color 0.2s;
+      color: var(--text); font-family: var(--mono); font-size: 13px; outline: none;
+      transition: border-color 0.2s;
     }
-    .setting-input:focus { border-color: var(--t1); }
-    .setting-hint  { font-size: 10px; color: var(--muted); margin-top: 6px; line-height: 1.6; }
-    .save-btn {
-      width: 100%; padding: 13px; border-radius: 8px; border: none;
-      background: var(--t1); color: #001a10;
+    .set-input:focus { border-color: var(--yellow); }
+    .set-hint { font-size: 10px; color: var(--muted); margin-top: 6px; line-height: 1.6; }
+    .set-save {
+      width: 100%; padding: 12px; border-radius: 8px; border: none;
+      background: var(--yellow); color: #111;
       font-family: var(--mono); font-size: 12px; font-weight: 900;
-      letter-spacing: 2px; cursor: pointer; transition: opacity 0.2s; margin-top: 4px;
+      letter-spacing: 2px; cursor: pointer; transition: opacity 0.2s;
     }
-    .save-btn:hover { opacity: 0.85; }
-    .save-confirm  { text-align: center; font-size: 11px; color: var(--t2); margin-top: 10px; display: none; letter-spacing: 1px; }
-    .api-status    { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 8px; margin-bottom: 14px; font-size: 11px; }
-    .api-status.set    { background: rgba(52,211,153,0.08); border: 1px solid rgba(52,211,153,0.2); color: #34d399; }
-    .api-status.notset { background: rgba(248,113,113,0.08); border: 1px solid rgba(248,113,113,0.2); color: #f87171; }
-    .status-dot    { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-    .clear-btn {
-      padding: 8px 14px; border-radius: 6px; border: 1px solid var(--muted);
-      background: transparent; color: var(--subtext);
-      font-family: var(--mono); font-size: 10px; cursor: pointer; margin-top: 8px; letter-spacing: 1px;
+    .set-save:hover { opacity: 0.85; }
+    .set-confirm { text-align: center; font-size: 11px; color: var(--green); margin-top: 10px; display: none; letter-spacing: 1px; }
+    .set-clear {
+      padding: 7px 14px; border-radius: 6px; border: 1px solid var(--muted);
+      background: transparent; color: var(--sub); font-family: var(--mono);
+      font-size: 10px; cursor: pointer; margin-top: 8px; letter-spacing: 1px;
     }
-    .info-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
-    .info-row:last-child { border-bottom: none; }
-    .info-key { color: var(--subtext); }
-    .info-val { font-family: var(--mono); color: var(--text); font-size: 11px; }
+    .api-status {
+      display: flex; align-items: center; gap: 8px; padding: 10px 13px;
+      border-radius: 8px; margin-bottom: 14px; font-size: 11px;
+    }
+    .api-status.set    { background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.2); color: var(--green); }
+    .api-status.notset { background: var(--red-bg); border: 1px solid rgba(239,68,68,0.2); color: var(--red); }
+    .s-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .set-info-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 12px;
+    }
+    .set-info-row:last-child { border-bottom: none; }
+    .set-info-key { color: var(--sub); }
+    .set-info-val { font-family: var(--mono); color: var(--text); font-size: 11px; }
+
+    /* delay slider */
+    .delay-row { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
+    .delay-row input[type=range] { flex: 1; accent-color: var(--yellow); }
+    .delay-val { font-family: var(--mono); font-size: 13px; color: var(--yellow); min-width: 40px; text-align: right; }
   </style>
 </head>
 <body>
 
-  <!-- TAB BAR -->
+  <!-- ── TAB BAR ── -->
   <div id="tab-bar">
     <div id="header-row">
-      <div>
-        <div class="label">CHANGI AIRPORT · SIN</div>
-        <div class="title">🌙 EARLY MORNING ARRIVALS</div>
+      <div class="hdr-left">
+        <div class="app-icon">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2C12.8 2 13.5 2.5 13.5 3.5L13.5 9L20 13L20 15L13.5 13.5L13.5 17.5L16 19L16 21L12 19.5L8 21L8 19L10.5 17.5L10.5 13.5L4 15L4 13L10.5 9L10.5 3.5C10.5 2.5 11.2 2 12 2Z" fill="#111111"/>
+          </svg>
+        </div>
+        <div class="hdr-titles">
+          <div class="sub">Changi Airport · SIN</div>
+          <div class="main">Early Morning Arrivals</div>
+        </div>
       </div>
-      <div>
-        <div id="clock">00:00<span class="tz">SGT · 03:00–07:00 WINDOW</span></div>
+      <div id="clock">
+        <div class="time" id="clock-time">--:--</div>
+        <div class="tz">SGT · 03:00–07:00</div>
       </div>
     </div>
     <div id="tabs">
@@ -255,351 +337,461 @@
     </div>
   </div>
 
-  <!-- ── ARRIVALS PAGE ── -->
+  <!-- ══ ARRIVALS PAGE ══ -->
   <div id="page-arrivals" class="page active">
-    <div id="banner">
-      <div class="banner-label">⚡ RECOMMENDED ACTION WINDOW</div>
-      <div class="window-row">
-        <div>
-          <div class="window-times">
-            <span id="win-start" style="color:var(--t1)">--:--</span>
-            <span style="color:var(--muted);font-size:20px"> — </span>
-            <span id="win-end"   style="color:var(--t2)">--:--</span>
-          </div>
-          <div class="window-sub">Peak passenger exit window · Target <span id="best-term" style="font-weight:800"></span></div>
-        </div>
-        <div class="term-chips" id="term-chips"></div>
-      </div>
-      <div class="summary-box" id="summary-text"></div>
-      <div class="confidence-row">
-        <div class="conf-dot" id="conf-dot"></div>
-        <span class="conf-label" id="conf-label"></span>
-      </div>
+
+    <!-- No key message -->
+    <div id="no-key-msg">
+      <div class="nk-icon">🔑</div>
+      <div class="nk-title">Gemini API Key Required</div>
+      <div class="nk-sub">Tap ⚙ SETTINGS to enter your Google Gemini API key.<br/>Get one free at <strong>aistudio.google.com</strong></div>
     </div>
 
-    <div id="next-wave">
-      <div class="section-label">NEXT PAX EXITS</div>
-      <div class="strip" id="wave-strip"></div>
-    </div>
-
+    <!-- Error -->
     <div id="error-box"></div>
 
+    <!-- Loading -->
     <div id="loading-state">
       <div class="spinner"></div>
       <span>FETCHING ARRIVALS…</span>
     </div>
 
-    <div id="terminals"></div>
+    <!-- GO Signal -->
+    <div id="signal-card" class="loading" style="display:none;">
+      <div class="sig-left">
+        <div class="sig-label" id="sig-label">WORTH THE DRIVE?</div>
+        <div class="sig-word"  id="sig-word">—</div>
+        <div class="sig-sub"   id="sig-sub"></div>
+      </div>
+      <div class="sig-right">
+        <div class="sig-term-label" id="sig-term-label"></div>
+        <div class="sig-term-box"   id="sig-term-box"></div>
+        <div class="sig-pax"        id="sig-pax"></div>
+      </div>
+    </div>
 
+    <!-- Timeline -->
+    <div id="timeline-wrap" style="display:none;">
+      <div class="section-label">FULL PICTURE · 03:00 – 07:00</div>
+      <div id="timeline-grid"></div>
+      <div class="tl-axis">
+        <span>03:00</span><span>04:00</span><span>05:00</span><span>06:00</span><span>07:00</span>
+      </div>
+      <div class="tl-now-label"><span id="now-label"></span></div>
+      <div class="tl-legend">
+        <div class="tl-legend-item"><div style="width:10px;height:10px;border-radius:2px;background:var(--amber);"></div> pax exit</div>
+        <div class="tl-legend-item"><div style="width:2px;height:10px;background:var(--red);"></div> now</div>
+        <div class="tl-legend-item"><div style="width:20px;height:2px;background:var(--dim);"></div> gap = wait</div>
+      </div>
+    </div>
+
+    <!-- Terminal cards -->
+    <div id="term-cards" style="display:none;">
+      <div class="section-label">ALL FLIGHTS BY TERMINAL</div>
+    </div>
+
+    <!-- Footer -->
     <div id="footer">
-      <span class="copy">DATA VIA GOOGLE GEMINI · NOT FOR SAFETY-CRITICAL USE</span>
+      <span class="copy">DATA VIA GOOGLE GEMINI</span>
       <div class="right">
-        <span id="refresh-label">REFRESH --s</span>
-        <button id="refresh-btn" onclick="triggerRefresh()">↺ NOW</button>
+        <span id="last-checked">—</span>
+        <button id="refresh-btn" onclick="triggerRefresh()">↺ CHECK NOW</button>
       </div>
     </div>
   </div>
 
-  <!-- ── SETTINGS PAGE ── -->
+  <!-- ══ SETTINGS PAGE ══ -->
   <div id="page-settings" class="page">
-    <div class="settings-section">
+
+    <div class="set-section">
       <h3>🤖 AI Scanning (Gemini)</h3>
-
       <div id="api-status-box" class="api-status notset">
-        <div class="status-dot" id="status-dot" style="background:#f87171"></div>
-        <span id="status-text">No API key saved</span>
+        <div class="s-dot" id="s-dot" style="background:var(--red)"></div>
+        <span id="s-txt">No API key saved</span>
       </div>
-
-      <div class="setting-row">
-        <label class="setting-label">Gemini API Key</label>
-        <input id="api-key-input" class="setting-input" type="password"
-          placeholder="AIza..." autocomplete="off" />
-        <div class="setting-hint">
-          Get your key from <strong style="color:var(--t1)">aistudio.google.com</strong> → Get API key → Create API key.<br/>
-          Saved locally on this device only — never stored in the code or GitHub.
-        </div>
+      <div class="set-row">
+        <label class="set-lbl">Gemini API Key</label>
+        <input id="api-input" class="set-input" type="password" placeholder="AIza..." autocomplete="off" />
+        <div class="set-hint">Get your free key at <strong style="color:var(--yellow)">aistudio.google.com</strong> → Get API key → Create API key.<br/>Saved on this device only — never in the code or GitHub.</div>
       </div>
-
-      <button class="save-btn" onclick="saveApiKey()">SAVE API KEY</button>
-      <div class="save-confirm" id="save-confirm">✓ API KEY SAVED SUCCESSFULLY</div>
-      <br/>
-      <button class="clear-btn" onclick="clearApiKey()">✕ Clear saved key</button>
+      <button class="set-save" onclick="saveKey()">SAVE API KEY</button>
+      <div class="set-confirm" id="set-confirm">✓ KEY SAVED</div><br/>
+      <button class="set-clear" onclick="clearKey()">✕ Clear saved key</button>
     </div>
 
-    <div class="settings-section">
-      <h3>ℹ App Information</h3>
-      <div class="info-row"><span class="info-key">App</span><span class="info-val">Changi PHV Arrivals</span></div>
-      <div class="info-row"><span class="info-key">Window</span><span class="info-val">03:00 – 07:00 SGT</span></div>
-      <div class="info-row"><span class="info-key">Auto-refresh</span><span class="info-val">Every 2 minutes</span></div>
-      <div class="info-row"><span class="info-key">Exit delay (Intl)</span><span class="info-val">+50 min after touchdown</span></div>
-      <div class="info-row"><span class="info-key">Exit delay (Dom)</span><span class="info-val">+20 min after touchdown</span></div>
-      <div class="info-row"><span class="info-key">AI Provider</span><span class="info-val">Google Gemini</span></div>
-      <div class="info-row"><span class="info-key">Version</span><span class="info-val">1.0.0</span></div>
+    <div class="set-section">
+      <h3>⏱ Exit Delay Settings</h3>
+      <div class="set-row">
+        <label class="set-lbl">International flights (mins after touchdown)</label>
+        <div class="delay-row">
+          <input type="range" min="30" max="90" step="5" id="intl-delay" value="50" oninput="document.getElementById('intl-val').textContent=this.value+'m'" />
+          <span class="delay-val" id="intl-val">50m</span>
+        </div>
+      </div>
+      <div class="set-row">
+        <label class="set-lbl">Domestic flights (mins after touchdown)</label>
+        <div class="delay-row">
+          <input type="range" min="10" max="40" step="5" id="dom-delay" value="20" oninput="document.getElementById('dom-val').textContent=this.value+'m'" />
+          <span class="delay-val" id="dom-val">20m</span>
+        </div>
+      </div>
+      <div class="set-hint">Adjust based on your experience. International default 50 min (passport + bags). Domestic default 20 min.</div>
+    </div>
+
+    <div class="set-section">
+      <h3>ℹ App Info</h3>
+      <div class="set-info-row"><span class="set-info-key">App</span><span class="set-info-val">Changi PHV Arrivals</span></div>
+      <div class="set-info-row"><span class="set-info-key">Window</span><span class="set-info-val">03:00 – 07:00 SGT</span></div>
+      <div class="set-info-row"><span class="set-info-key">AI Provider</span><span class="set-info-val">Google Gemini 2.0 Flash</span></div>
+      <div class="set-info-row"><span class="set-info-key">Data refresh</span><span class="set-info-val">Manual (tap Check Now)</span></div>
+      <div class="set-info-row"><span class="set-info-key">Version</span><span class="set-info-val">2.0.0</span></div>
     </div>
   </div>
 
   <script>
-  const TERMINALS    = ["T1","T2","T3","T4"];
-  const TERM_COLORS  = { T1:"#38bdf8", T2:"#34d399", T3:"#f59e0b", T4:"#f472b6" };
-  const TERM_LABELS  = { T1:"Terminal 1", T2:"Terminal 2", T3:"Terminal 3", T4:"Terminal 4" };
-  const REFRESH_SECS = 120;
-  const STORAGE_KEY  = "changi_phv_gemini_key";
+  // ── Config ─────────────────────────────────────────────────────────────────
+  const TERMINALS   = ["T1","T2","T3","T4"];
+  const T_COLORS    = { T1:"#38bdf8", T2:"#34d399", T3:"#f59e0b", T4:"#f472b6" };
+  const T_LABELS    = { T1:"Terminal 1", T2:"Terminal 2", T3:"Terminal 3", T4:"Terminal 4" };
+  const STORAGE_KEY = "changi_phv_gemini_key";
+  // window start/end in minutes from midnight
+  const WIN_START = 3*60, WIN_END = 7*60, WIN_DUR = WIN_END - WIN_START; // 240 min
 
-  let tickLeft  = REFRESH_SECS;
   let isLoading = false;
+  let lastData  = null;
 
-  // ── Tab switching ──────────────────────────────────────────────────────────
-  function switchTab(btn, tab) {
-    document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
-    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-    document.getElementById("page-" + tab).classList.add("active");
+  // ── Helpers ────────────────────────────────────────────────────────────────
+  function nowSGT() {
+    return new Date(new Date().toLocaleString("en-US",{timeZone:"Asia/Singapore"}));
+  }
+  function fmtHHMM(d) {
+    return d.toLocaleTimeString("en-SG",{timeZone:"Asia/Singapore",hour:"2-digit",minute:"2-digit",hour12:false});
+  }
+  function parseSGT(hhmm) {
+    const [h,m]=hhmm.split(":").map(Number);
+    const d=nowSGT(); d.setHours(h,m,0,0); return d;
+  }
+  function minsUntil(d) { return Math.round((d-nowSGT())/60000); }
+  function toWinPct(hhmm) {
+    const [h,m]=hhmm.split(":").map(Number);
+    return Math.max(0,Math.min(100,((h*60+m-WIN_START)/WIN_DUR)*100));
+  }
+  function nowWinPct() {
+    const n=nowSGT(); return Math.max(0,Math.min(100,((n.getHours()*60+n.getMinutes()-WIN_START)/WIN_DUR)*100));
+  }
+  function updateClock() {
+    document.getElementById("clock-time").textContent = fmtHHMM(nowSGT());
+  }
+  function getIntlDelay() { return parseInt(document.getElementById("intl-delay").value)||50; }
+  function getDomDelay()  { return parseInt(document.getElementById("dom-delay").value)||20; }
+
+  // ── Tab ────────────────────────────────────────────────────────────────────
+  function switchTab(btn,tab) {
+    document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+    document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+    document.getElementById("page-"+tab).classList.add("active");
     btn.classList.add("active");
-    if (tab === "settings") renderApiStatus();
+    if(tab==="settings") renderApiStatus();
   }
 
   // ── API Key ────────────────────────────────────────────────────────────────
-  function getApiKey() { return localStorage.getItem(STORAGE_KEY) || ""; }
-
-  function saveApiKey() {
-    const val = document.getElementById("api-key-input").value.trim();
-    if (!val) { alert("Please enter your Gemini API key first."); return; }
-    localStorage.setItem(STORAGE_KEY, val);
+  function getKey()  { return localStorage.getItem(STORAGE_KEY)||""; }
+  function saveKey() {
+    const v=document.getElementById("api-input").value.trim();
+    if(!v){alert("Please enter your Gemini API key.");return;}
+    localStorage.setItem(STORAGE_KEY,v);
     renderApiStatus();
-    const c = document.getElementById("save-confirm");
-    c.style.display = "block";
-    setTimeout(() => c.style.display = "none", 3000);
+    const c=document.getElementById("set-confirm");
+    c.style.display="block"; setTimeout(()=>c.style.display="none",3000);
     triggerRefresh();
   }
-
-  function clearApiKey() {
-    if (!confirm("Clear saved API key?")) return;
+  function clearKey() {
+    if(!confirm("Clear saved API key?"))return;
     localStorage.removeItem(STORAGE_KEY);
-    document.getElementById("api-key-input").value = "";
+    document.getElementById("api-input").value="";
     renderApiStatus();
   }
-
   function renderApiStatus() {
-    const key = getApiKey();
-    const box = document.getElementById("api-status-box");
-    const dot = document.getElementById("status-dot");
-    const txt = document.getElementById("status-text");
-    const inp = document.getElementById("api-key-input");
-    if (key) {
-      box.className = "api-status set";
-      dot.style.background = "#34d399";
-      txt.textContent = "Gemini API key saved (" + key.slice(0,8) + "••••)";
-      inp.placeholder = "Enter new key to replace...";
+    const k=getKey();
+    const box=document.getElementById("api-status-box");
+    const dot=document.getElementById("s-dot");
+    const txt=document.getElementById("s-txt");
+    const inp=document.getElementById("api-input");
+    if(k){
+      box.className="api-status set"; dot.style.background="var(--green)";
+      txt.textContent="Gemini key saved ("+k.slice(0,8)+"••••)";
+      inp.placeholder="Enter new key to replace...";
     } else {
-      box.className = "api-status notset";
-      dot.style.background = "#f87171";
-      txt.textContent = "No API key saved";
-      inp.placeholder = "AIza...";
+      box.className="api-status notset"; dot.style.background="var(--red)";
+      txt.textContent="No API key saved"; inp.placeholder="AIza...";
     }
-  }
-
-  // ── Time helpers ───────────────────────────────────────────────────────────
-  function nowSGT() {
-    return new Date(new Date().toLocaleString("en-US", { timeZone:"Asia/Singapore" }));
-  }
-  function fmtHHMM(d) {
-    return d.toLocaleTimeString("en-SG", { timeZone:"Asia/Singapore", hour:"2-digit", minute:"2-digit", hour12:false });
-  }
-  function parseSGT(hhmm) {
-    const [h,m] = hhmm.split(":").map(Number);
-    const d = nowSGT(); d.setHours(h,m,0,0); return d;
-  }
-  function minsUntil(d) { return Math.round((d - nowSGT()) / 60000); }
-  function statusInfo(m) {
-    if (m < 0)  return { color:"#64748b", label:"LANDED" };
-    if (m < 15) return { color:"#f87171", label:"IMMINENT" };
-    if (m < 40) return { color:"#fb923c", label:"SOON" };
-    return           { color:"#34d399",  label:"UPCOMING" };
-  }
-  function updateClock() {
-    document.getElementById("clock").childNodes[0].textContent = fmtHHMM(nowSGT());
   }
 
   // ── Gemini fetch ───────────────────────────────────────────────────────────
   async function fetchData() {
-    const apiKey = getApiKey();
-    if (!apiKey) {
-      showError("No API key found. Tap ⚙ SETTINGS and enter your Gemini API key to get started.");
-      document.getElementById("loading-state").style.display = "none";
+    const key=getKey();
+    if(!key){
+      document.getElementById("no-key-msg").style.display="block";
+      document.getElementById("loading-state").classList.remove("show");
       return null;
     }
+    document.getElementById("no-key-msg").style.display="none";
 
-    const now     = nowSGT();
-    const timeStr = fmtHHMM(now);
-    const dateStr = now.toLocaleDateString("en-SG", {
-      timeZone:"Asia/Singapore", weekday:"long", year:"numeric", month:"long", day:"numeric"
-    });
+    const now=nowSGT();
+    const timeStr=fmtHHMM(now);
+    const dateStr=now.toLocaleDateString("en-SG",{timeZone:"Asia/Singapore",weekday:"long",year:"numeric",month:"long",day:"numeric"});
+    const intlDelay=getIntlDelay(), domDelay=getDomDelay();
 
-    const prompt = `You are a Changi Airport flight data assistant. Current Singapore time: ${timeStr} SGT, ${dateStr}.
+    const prompt=`You are a Changi Airport flight data assistant. Current Singapore time: ${timeStr} SGT, ${dateStr}.
 
-A PHV driver works 3:00 AM – 7:00 AM SGT. Provide all flights arriving at Changi Airport (SIN) from NOW until 07:00 SGT, grouped by terminal.
+A PHV driver works 3:00 AM – 7:00 AM SGT and needs to decide if it is worth driving to the airport. Provide all flights arriving at Changi Airport (SIN) from NOW until 07:00 SGT, grouped by terminal.
 
-Return ONLY valid JSON, no markdown, no explanation:
+Return ONLY valid JSON, no markdown fences, no explanation:
 
 {
   "terminals": {
-    "T1": [{ "flight":"SQ321","airline":"Singapore Airlines","origin":"London (LHR)","type":"international","scheduledTouchdown":"04:35","estimatedTouchdown":"04:35","status":"On Time","delayMins":0,"exitTime":"05:25" }],
+    "T1": [{"flight":"SQ123","airline":"Singapore Airlines","origin":"London (LHR)","type":"international","scheduledTouchdown":"04:35","estimatedTouchdown":"04:35","delayMins":0,"exitTime":"05:25"}],
     "T2": [], "T3": [], "T4": []
   },
-  "summary": "2-sentence plain-English summary of which terminals are busiest and any notable gaps.",
-  "bestWindowStart": "04:10",
-  "bestWindowEnd": "05:30",
+  "totalFlights": 5,
+  "decision": "GO",
+  "decisionReason": "4 flights landing across T3 and T1 in next 60 mins",
   "bestTerminal": "T3",
+  "firstPaxExit": "04:15",
   "confidence": "medium"
 }
 
 Rules:
 - Only flights touching down between NOW (${timeStr}) and 07:00 SGT.
-- exitTime = estimatedTouchdown + 50 min for international, + 20 min for domestic.
+- exitTime = estimatedTouchdown + ${intlDelay} min for international, + ${domDelay} min for domestic.
 - Empty array [] if no flights for a terminal.
 - All times HH:MM 24h SGT.
-- bestWindowStart/End = busiest pax-exit cluster across all terminals.
-- bestTerminal = terminal with most pax exiting in that window.
+- decision: "GO" if 3+ flights in next 60 mins, "MAYBE" if 1-2 flights, "STAY" if no flights soon.
+- bestTerminal = terminal with most upcoming pax exits.
+- firstPaxExit = earliest upcoming exit time across all terminals.
 - confidence: "high" certain, "medium" approximate, "low" guessing.
-- Use your knowledge of typical SIN scheduled services on a ${dateStr.split(",")[0]} early morning.`;
+- Use your knowledge of typical SIN scheduled services on ${dateStr.split(",")[0]} early morning.`;
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-
-    const res = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.2, maxOutputTokens: 1500 }
+    const url=`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`;
+    const res=await fetch(url,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        contents:[{parts:[{text:prompt}]}],
+        generationConfig:{temperature:0.1,maxOutputTokens:1500}
       })
     });
-
-    const json = await res.json();
-    if (json.error) throw new Error(json.error.message);
-
-    const raw   = json?.candidates?.[0]?.content?.parts?.[0]?.text || "";
-    const clean = raw.replace(/```json|```/g,"").trim();
-    return JSON.parse(clean);
+    const json=await res.json();
+    if(json.error) throw new Error(json.error.message);
+    const raw=json?.candidates?.[0]?.content?.parts?.[0]?.text||"";
+    return JSON.parse(raw.replace(/```json|```/g,"").trim());
   }
 
-  // ── Render ─────────────────────────────────────────────────────────────────
-  function showError(msg) {
-    const e = document.getElementById("error-box");
-    e.innerHTML = "⚠ " + msg; e.style.display = "block";
+  // ── Render signal card ─────────────────────────────────────────────────────
+  function renderSignal(data) {
+    const card=document.getElementById("signal-card");
+    card.style.display="flex";
+    const dec=data.decision||"STAY";
+    card.className=dec==="GO"?"go":dec==="MAYBE"?"maybe":"stay";
+
+    const col=dec==="GO"?"var(--green)":dec==="MAYBE"?"var(--amber)":"var(--red)";
+    document.getElementById("sig-label").style.color=col;
+    document.getElementById("sig-label").textContent="WORTH THE DRIVE?";
+    document.getElementById("sig-word").style.color=col;
+    document.getElementById("sig-word").textContent=dec;
+    document.getElementById("sig-sub").style.color=col;
+    document.getElementById("sig-sub").textContent=data.decisionReason||"";
+
+    const tc=T_COLORS[data.bestTerminal]||"var(--yellow)";
+    const termBox=document.getElementById("sig-term-box");
+    if(data.bestTerminal && dec!=="STAY"){
+      document.getElementById("sig-term-label").textContent="Head to";
+      document.getElementById("sig-term-label").style.color=col;
+      termBox.textContent=data.bestTerminal;
+      termBox.style.background=tc+"22";
+      termBox.style.border="1px solid "+tc+"66";
+      termBox.style.color=tc;
+      document.getElementById("sig-pax").textContent=data.firstPaxExit?"first pax "+data.firstPaxExit:"";
+      document.getElementById("sig-pax").style.color=col;
+    } else {
+      document.getElementById("sig-term-label").textContent="";
+      termBox.textContent=""; termBox.style.background="transparent"; termBox.style.border="none";
+      document.getElementById("sig-pax").textContent="";
+    }
   }
 
-  function dotHTML(color) {
-    return `<div class="dot-wrap"><div class="dot-ring" style="background:${color}"></div><div class="dot-core" style="background:${color}"></div></div>`;
-  }
+  // ── Render timeline ────────────────────────────────────────────────────────
+  function renderTimeline(data) {
+    const wrap=document.getElementById("timeline-wrap");
+    wrap.style.display="block";
+    const grid=document.getElementById("timeline-grid");
+    grid.innerHTML="";
 
-  function renderBanner(data) {
-    const banner = document.getElementById("banner");
-    if (!data.bestWindowStart) { banner.style.display="none"; return; }
-    const c = TERM_COLORS[data.bestTerminal] || "var(--t1)";
-    document.getElementById("win-start").textContent = data.bestWindowStart;
-    document.getElementById("win-end").textContent   = data.bestWindowEnd;
-    const bt = document.getElementById("best-term"); bt.textContent = data.bestTerminal; bt.style.color = c;
-    const chips = document.getElementById("term-chips"); chips.innerHTML = "";
-    TERMINALS.forEach(t => {
-      if (!(data.terminals[t]||[]).length) return;
-      const tc = TERM_COLORS[t], ia = t === data.bestTerminal;
-      chips.innerHTML += `<div class="term-chip ${ia?'active':''}" style="color:${ia?tc:'var(--muted)'};background:${ia?tc+'22':'rgba(255,255,255,0.03)'};border-color:${ia?tc:'var(--dim)'};">${t}</div>`;
+    const nowPct=nowWinPct();
+
+    TERMINALS.forEach(t=>{
+      const flights=data.terminals[t]||[];
+      const c=T_COLORS[t];
+      const row=document.createElement("div");
+      row.className="tl-row";
+
+      // badge
+      const badge=document.createElement("div");
+      badge.className="tl-badge";
+      badge.textContent=t;
+      badge.style.background=c+"22";
+      badge.style.border="1px solid "+c+"44";
+      badge.style.color=c;
+      row.appendChild(badge);
+
+      // lane
+      const lane=document.createElement("div");
+      lane.className="tl-lane";
+      if(t===data.bestTerminal) { lane.style.background=c+"0d"; lane.style.borderColor=c+"44"; }
+
+      // now line
+      const nowLine=document.createElement("div");
+      nowLine.className="tl-now";
+      nowLine.style.left=nowPct+"%";
+      lane.appendChild(nowLine);
+
+      if(flights.length===0){
+        const emp=document.createElement("div");
+        emp.className="tl-empty"; emp.textContent="no flights";
+        lane.appendChild(emp);
+      } else {
+        flights.forEach(f=>{
+          const pct=toWinPct(f.exitTime);
+          // block
+          const blk=document.createElement("div");
+          blk.className="tl-block";
+          blk.style.left=Math.max(0,pct-1)+"%";
+          blk.style.background=c;
+          lane.appendChild(blk);
+          // label — only if not too crowded
+          const lbl=document.createElement("div");
+          lbl.className="tl-lbl";
+          lbl.textContent=f.exitTime;
+          lbl.style.color=c;
+          // offset label left or right to avoid overlap
+          const leftPct=pct-1;
+          if(leftPct>75){ lbl.style.right=(100-leftPct+2)+"%"; lbl.style.left="auto"; }
+          else { lbl.style.left=(leftPct+2)+"%"; }
+          lane.appendChild(lbl);
+        });
+      }
+      row.appendChild(lane);
+      grid.appendChild(row);
     });
-    document.getElementById("summary-text").textContent = data.summary || "";
-    const cc = {high:"#34d399",medium:"#fb923c",low:"#f87171"}[data.confidence]||"#64748b";
-    document.getElementById("conf-dot").style.background = cc;
-    document.getElementById("conf-label").textContent = `${(data.confidence||"").toUpperCase()} CONFIDENCE · AI-generated schedule estimate`;
-    banner.style.display = "block";
+
+    // now label
+    const nl=document.getElementById("now-label");
+    nl.textContent="▲ now "+fmtHHMM(nowSGT());
+    nl.style.left=nowPct+"%";
   }
 
-  function renderNextWave(data) {
-    const all = TERMINALS.flatMap(t => (data.terminals[t]||[]).map(f=>({...f,terminal:t})));
-    const upcoming = all.filter(f=>minsUntil(parseSGT(f.exitTime))>-5)
-      .sort((a,b)=>parseSGT(a.exitTime)-parseSGT(b.exitTime)).slice(0,3);
-    const nw = document.getElementById("next-wave");
-    if (!upcoming.length) { nw.style.display="none"; return; }
-    const strip = document.getElementById("wave-strip"); strip.innerHTML="";
-    upcoming.forEach(f => {
-      const c=TERM_COLORS[f.terminal], em=minsUntil(parseSGT(f.exitTime));
-      strip.innerHTML+=`<div class="wave-card" style="background:${c}12;border:1px solid ${c}33;">
-        <div class="wc-time" style="color:${c}">${f.exitTime}</div>
-        <div class="wc-sub">${f.terminal} · ${f.flight}</div>
-        <div class="wc-mins" style="color:${em<20?'#f87171':'var(--subtext)'}"> ${em>=0?em+'m away':Math.abs(em)+'m ago'}</div></div>`;
+  // ── Render terminal cards ──────────────────────────────────────────────────
+  function renderTermCards(data) {
+    const wrap=document.getElementById("term-cards");
+    wrap.style.display="block";
+    // clear old cards but keep section label
+    Array.from(wrap.querySelectorAll(".term-card")).forEach(c=>c.remove());
+
+    // sort: best terminal first, then by flight count desc
+    const sorted=[...TERMINALS].sort((a,b)=>{
+      if(a===data.bestTerminal) return -1;
+      if(b===data.bestTerminal) return 1;
+      return (data.terminals[b]||[]).length-(data.terminals[a]||[]).length;
     });
-    nw.style.display="block";
-  }
 
-  function renderTerminals(data) {
-    const container = document.getElementById("terminals"); container.innerHTML="";
-    TERMINALS.forEach(t => {
-      const flights=data.terminals[t]||[], c=TERM_COLORS[t];
-      const upcoming=flights.filter(f=>minsUntil(parseSGT(f.exitTime))>-10);
-      const next=upcoming[0]||null, nem=next?minsUntil(parseSGT(next.exitTime)):null;
-      const bc=!next?"var(--muted)":nem<0?"#64748b":nem<20?"#f87171":nem<45?"#fb923c":c;
-      const bbg=!next?"rgba(100,116,139,0.1)":`${bc}18`, bbr=!next?"var(--dim)":`${bc}55`;
+    sorted.forEach(t=>{
+      const flights=data.terminals[t]||[];
+      const c=T_COLORS[t];
+      const isBest=t===data.bestTerminal && flights.length>0;
+      const card=document.createElement("div");
+      card.className="term-card"+(isBest?" best":"");
 
-      let rows = flights.length===0
-        ? `<div class="no-flights">— NO ARRIVALS IN WINDOW —</div>`
-        : `<div class="col-headers"><div class="col-hdr">FLIGHT</div><div class="col-hdr">ORIGIN</div><div class="col-hdr center">TDOWN</div><div class="col-hdr center">EXIT</div><div class="col-hdr right">STATUS</div></div><div class="flight-rows">`;
+      // header
+      const upcoming=flights.filter(f=>minsUntil(parseSGT(f.exitTime))>-5);
+      const exitTimes=flights.map(f=>f.exitTime).join(" · ");
 
-      flights.forEach(f => {
-        const tm=minsUntil(parseSGT(f.estimatedTouchdown)), em=minsUntil(parseSGT(f.exitTime)), st=statusInfo(tm);
-        rows+=`<div class="flight-row ${tm<0?'landed':''}" style="border-left-color:${tm<0?'var(--dim)':c}">
-          <div class="fr-flight">${f.flight}</div>
-          <div><div class="fr-origin">${f.origin}</div><div class="fr-type">${f.type==='international'?'✈ INTL':'🛫 DOM'} · ${f.airline.split(" ").pop()}</div></div>
-          <div><div class="fr-time" style="color:${f.delayMins>0?'#fb923c':'var(--text)'}">${f.estimatedTouchdown}</div>${f.delayMins>0?`<div class="fr-delay">+${f.delayMins}m</div>`:''}</div>
-          <div><div class="fr-time" style="color:${em<0?'#64748b':em<20?'#f87171':c}">${f.exitTime}</div></div>
-          <div><div class="fr-status">${dotHTML(st.color)}<span class="fr-status-label" style="color:${st.color}">${st.label}</span></div><div class="fr-ago">${tm>=0?'in '+tm+'m':Math.abs(tm)+'m ago'}</div></div>
-        </div>`;
-      });
-      if (flights.length>0) rows+="</div>";
-
-      container.innerHTML+=`<div class="term-panel">
-        <div class="term-header" style="background:linear-gradient(90deg,${c}14 0%,transparent 100%);border-bottom-color:${c}18;">
-          <div class="term-header-left">
-            <div class="term-badge" style="background:${c}1e;border:1px solid ${c}40;color:${c};">${t}</div>
-            <div><div class="term-name">${TERM_LABELS[t]}</div><div class="term-count">${flights.length} flight${flights.length!==1?'s':''} · 3AM–7AM window</div></div>
+      card.innerHTML=`
+        <div class="tc-header" style="background:${c}0a;">
+          <div class="tc-header-left">
+            <div class="tc-badge" style="background:${c}22;border:1px solid ${c}44;color:${c};">${t}</div>
+            <div>
+              <div class="tc-name">${T_LABELS[t]}</div>
+              <div class="tc-count">${flights.length} flight${flights.length!==1?"s":""} in window</div>
+            </div>
           </div>
-          <div class="next-pax-badge" style="background:${bbg};border:1px solid ${bbr};">
-            ${next?`<div class="next-pax-time" style="color:${bc}">${next.exitTime}</div><div class="next-pax-label">NEXT PAX</div>`
-                  :`<div style="font-size:9px;color:var(--muted);letter-spacing:1px;">NO MORE FLIGHTS</div>`}
+          ${isBest?`<div class="best-pill">BEST</div>`:
+            flights.length>0?`<div class="tc-times">${exitTimes}</div>`:
+            `<div class="tc-noflight">no flights</div>`}
+        </div>
+        ${flights.length>0?`
+        <div class="tc-flights">
+          <div class="tc-col-hdr">
+            <span>Flight · Origin</span>
+            <span style="text-align:center;">Lands</span>
+            <span style="text-align:center;">Pax out</span>
           </div>
-        </div>${rows}</div>`;
+          ${flights.map(f=>{
+            const em=minsUntil(parseSGT(f.exitTime));
+            const isPast=em<-10;
+            const exitColor=em<0?"var(--muted)":em<20?"var(--red)":em<45?"var(--amber)":c;
+            return `<div class="tc-flight-row${isPast?" past":""}">
+              <div class="fr-info">
+                <div class="fr-num">${f.flight}</div>
+                <div class="fr-origin">${f.origin} · ${f.type==="international"?"INTL":"DOM"}</div>
+              </div>
+              <div class="fr-land" style="color:${f.delayMins>0?"var(--amber)":"var(--sub)"};">${f.estimatedTouchdown}${f.delayMins>0?`<br><span style="font-size:9px;">+${f.delayMins}m</span>`:""}</div>
+              <div class="fr-exit" style="color:${exitColor};">${f.exitTime}</div>
+            </div>`;
+          }).join("")}
+        </div>`:""}`;
+
+      wrap.appendChild(card);
     });
   }
 
-  // ── Load ───────────────────────────────────────────────────────────────────
+  // ── Main load ──────────────────────────────────────────────────────────────
   async function loadData() {
-    if (isLoading) return;
-    isLoading = true;
-    const btn = document.getElementById("refresh-btn"); btn.disabled=true;
+    if(isLoading) return;
+    isLoading=true;
+    const btn=document.getElementById("refresh-btn");
+    btn.disabled=true;
     document.getElementById("error-box").style.display="none";
+    document.getElementById("loading-state").classList.add("show");
+    document.getElementById("signal-card").style.display="none";
+    document.getElementById("timeline-wrap").style.display="none";
+    document.getElementById("term-cards").style.display="none";
+
     try {
-      const data = await fetchData();
-      if (!data) return;
-      document.getElementById("loading-state").style.display="none";
-      renderBanner(data); renderNextWave(data); renderTerminals(data);
+      const data=await fetchData();
+      if(!data){isLoading=false;btn.disabled=false;return;}
+      lastData=data;
+      document.getElementById("loading-state").classList.remove("show");
+      renderSignal(data);
+      renderTimeline(data);
+      renderTermCards(data);
+      document.getElementById("last-checked").textContent="Last checked "+fmtHHMM(nowSGT());
     } catch(e) {
-      showError("Could not fetch data — will retry automatically.<br><small style='color:var(--muted)'>" + e.message + "</small>");
-      document.getElementById("loading-state").style.display="none";
+      document.getElementById("loading-state").classList.remove("show");
+      const eb=document.getElementById("error-box");
+      eb.innerHTML="⚠ Could not fetch data.<br><small style='color:var(--muted)'>"+e.message+"</small>";
+      eb.style.display="block";
     } finally {
-      isLoading=false; btn.disabled=false; tickLeft=REFRESH_SECS;
+      isLoading=false; btn.disabled=false;
     }
   }
 
   function triggerRefresh() { loadData(); }
 
-  function tick() {
-    tickLeft--;
-    document.getElementById("refresh-label").textContent = `REFRESH ${tickLeft}s`;
-    if (tickLeft<=0) { tickLeft=REFRESH_SECS; loadData(); }
-    updateClock();
-  }
-
   // ── Boot ───────────────────────────────────────────────────────────────────
   renderApiStatus();
   updateClock();
+  setInterval(updateClock,10000);
   loadData();
-  setInterval(tick, 1000);
   </script>
 </body>
 </html>
