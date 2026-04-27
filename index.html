@@ -788,10 +788,12 @@ Rules:
   function triggerRefresh() { loadData(); }
 
   // ── Boot ───────────────────────────────────────────────────────────────────
-  renderApiStatus();
-  updateClock();
-  setInterval(updateClock,10000);
-  loadData();
+  window.addEventListener("load", function() {
+    renderApiStatus();
+    updateClock();
+    setInterval(updateClock, 10000);
+    loadData();
+  });
   </script>
 </body>
 </html>
