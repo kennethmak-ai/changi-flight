@@ -421,6 +421,9 @@
     <!-- Error -->
     <div id="error-box"></div>
 
+    <!-- Debug panel -->
+    <div id="debug-box" style="display:none;background:rgba(0,0,0,0.8);border:1px solid #333;border-radius:10px;padding:12px;margin-bottom:14px;font-family:monospace;font-size:10px;color:#0f0;max-height:300px;overflow-y:auto;"></div>
+
     <!-- Loading -->
     <div id="loading-state">
       <div class="spinner"></div>
@@ -943,6 +946,25 @@
       const raw=await fetchData();
       if(!raw){isLoading=false;document.getElementById("check-now-btn").disabled=false;return;}
       document.getElementById("loading-state").classList.remove("show");
+
+      // DEBUG: show raw data summary
+      const db=document.getElementById("debug-box");
+      db.style.display="block";
+      const flights=raw.data||[];
+      const now=fmtHHMM(nowSGT());
+      let dbHtml=`<b>SGT Now: ${now} | Total flights: ${flights.length}</b><br>`;
+      dbHtml+=`<b>Window: ${currentMode==="time"&&selectedTime?selectedTime:now} + 3hrs</b><br><br>`;
+      flights.slice(0,20).forEach((f,i)=>{
+        const arrRaw=(f.arrival&&f.arrival.actual)||(f.arrival&&f.arrival.estimated)||(f.arrival&&f.arrival.scheduled)||"";
+        let sgt="?";
+        if(arrRaw){try{const d=new Date(arrRaw);const ms=d.getTime()+(8*60*60*1000);const sd=new Date(ms);sgt=String(sd.getUTCHours()).padStart(2,"0")+":"+String(sd.getUTCMinutes()).padStart(2,"0");}catch(e){}}
+        const fn=(f.flight&&f.flight.iata)||"?";
+        const status=f.flight_status||"?";
+        const term=(f.arrival&&f.arrival.terminal)||"?";
+        dbHtml+=`${i+1}. ${fn} | ${status} | arr SGT:${sgt} | T${term}<br>`;
+      });
+      db.innerHTML=dbHtml;
+
       const d=processData(raw);
       renderSignal(d); renderTimeline(d); renderTermCards(d);
       document.getElementById("last-checked").textContent="Last checked "+fmtHHMM(nowSGT());
