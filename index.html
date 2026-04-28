@@ -442,7 +442,7 @@
       <h3>ℹ App Info</h3>
       <div class="set-info-row"><span class="set-info-key">App</span><span class="set-info-val">Changi PHV Arrivals</span></div>
       <div class="set-info-row"><span class="set-info-key">Window</span><span class="set-info-val">03:00 – 07:00 SGT</span></div>
-      <div class="set-info-row"><span class="set-info-key">AI Provider</span><span class="set-info-val">Google Gemini 2.5 Flash</span></div>
+      <div class="set-info-row"><span class="set-info-key">AI Provider</span><span class="set-info-val">Google Gemini 1.5 Flash</span></div>
       <div class="set-info-row"><span class="set-info-key">Data refresh</span><span class="set-info-val">Manual (tap Check Now)</span></div>
       <div class="set-info-row"><span class="set-info-key">Version</span><span class="set-info-val">2.0.0</span></div>
     </div>
@@ -491,7 +491,7 @@
     document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
     document.getElementById("page-"+tab).classList.add("active");
     btn.classList.add("active");
-    if(tab==="settings") renderApiStatus();
+    renderApiStatus();
   }
 
   // ── API Key ────────────────────────────────────────────────────────────────
@@ -499,6 +499,8 @@
   function saveKey() {
     const v=document.getElementById("api-input").value.trim();
     if(!v){alert("Please enter your Gemini API key.");return;}
+    // Don't save if it's the masked display value
+    if(v.includes("••")){alert("Please enter your actual API key.");return;}
     localStorage.setItem("mdl_gemini_api_key",v);
     renderApiStatus();
     const c=document.getElementById("set-confirm");
@@ -521,9 +523,12 @@
       box.className="api-status set"; dot.style.background="var(--green)";
       txt.textContent="Gemini key saved ("+k.slice(0,8)+"••••)";
       inp.placeholder="Enter new key to replace...";
+      // show key is saved visually even if input is empty
+      if(!inp.value) inp.value = k.slice(0,4)+"••••••••••••••••••••••••••••••••";
     } else {
       box.className="api-status notset"; dot.style.background="var(--red)";
       txt.textContent="No API key saved"; inp.placeholder="AIza...";
+      inp.value = "";
     }
   }
 
@@ -572,7 +577,7 @@ Rules:
 - confidence: "high" certain, "medium" approximate, "low" guessing.
 - Use your knowledge of typical SIN scheduled services on ${dateStr.split(",")[0]} early morning.`;
 
-    const url=`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`;
+    const url=`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`;
     const res=await fetch(url,{
       method:"POST",
       headers:{"Content-Type":"application/json"},
@@ -788,12 +793,10 @@ Rules:
   function triggerRefresh() { loadData(); }
 
   // ── Boot ───────────────────────────────────────────────────────────────────
-  window.addEventListener("load", function() {
-    renderApiStatus();
-    updateClock();
-    setInterval(updateClock, 10000);
-    loadData();
-  });
+  renderApiStatus();
+  updateClock();
+  setInterval(updateClock, 10000);
+  setTimeout(loadData, 300);
   </script>
 </body>
 </html>
