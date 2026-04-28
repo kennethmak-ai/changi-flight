@@ -680,15 +680,23 @@
     const terminals = {T1:[],T2:[],T3:[],T4:[]};
 
     (raw.data||[]).forEach(f=>{
-      // Get scheduled arrival time
-      const arrTime = f.arrival&&f.arrival.scheduled ? f.arrival.scheduled : null;
-      if(!arrTime) return;
+      // Use estimated arrival if available, else scheduled
+      const arrRaw = (f.arrival&&f.arrival.estimated) || (f.arrival&&f.arrival.scheduled);
+      if(!arrRaw) return;
 
-      // Parse HH:MM from ISO string
-      const d=new Date(arrTime);
-      const sgtStr=d.toLocaleTimeString("en-SG",{timeZone:"Asia/Singapore",hour:"2-digit",minute:"2-digit",hour12:false});
+      // Convert UTC ISO timestamp to SGT HH:MM
+      let sgtStr;
+      try {
+        const d=new Date(arrRaw);
+        sgtStr=d.toLocaleTimeString("en-SG",{timeZone:"Asia/Singapore",hour:"2-digit",minute:"2-digit",hour12:false});
+      } catch(e){return;}
+
       const [ah,am]=sgtStr.split(":").map(Number);
       const arrMins=ah*60+am;
+
+      // Handle midnight crossover
+      let normArr=arrMins, normFrom=fromMins, normTo=toMins;
+      if(normTo>=1440){normTo-=1440; if(normArr<normFrom) normArr+=1440;}
 
       // Only include flights within the 1-hour window
       if(arrMins<fromMins||arrMins>toMins) return;
@@ -696,23 +704,33 @@
       const term=getTerminal(f);
       if(!terminals[term]) return;
 
-      // Determine if international (non-Singapore origin)
-      const depCountry=(f.departure&&f.departure.country)||"";
-      const isIntl=depCountry!=="Singapore";
+      // Scheduled touchdown for display
+      let schedStr=sgtStr;
+      if(f.arrival&&f.arrival.scheduled){
+        try{
+          schedStr=new Date(f.arrival.scheduled).toLocaleTimeString("en-SG",{timeZone:"Asia/Singapore",hour:"2-digit",minute:"2-digit",hour12:false});
+        }catch(e){}
+      }
+
+      // Determine if international
+      const depIata=(f.departure&&f.departure.iata)||"";
+      const isIntl=depIata!=="SIN";
       const delay=isIntl?intlDelay:domDelay;
       const exitTime=addMins(sgtStr,delay);
 
+      // Delay in mins
+      let delayMins=0;
+      if(f.arrival&&f.arrival.delay) delayMins=parseInt(f.arrival.delay)||0;
+
       terminals[term].push({
-        flight: (f.flight&&f.flight.iata)||"—",
+        flight: (f.flight&&f.flight.iata)||(f.flight&&f.flight.number)||"—",
         airline:(f.airline&&f.airline.name)||"—",
         origin: (f.departure&&f.departure.airport)||"—",
         type:   isIntl?"international":"domestic",
-        scheduledTouchdown: sgtStr,
-        estimatedTouchdown: f.arrival.estimated
-          ? new Date(f.arrival.estimated).toLocaleTimeString("en-SG",{timeZone:"Asia/Singapore",hour:"2-digit",minute:"2-digit",hour12:false})
-          : sgtStr,
+        scheduledTouchdown: schedStr,
+        estimatedTouchdown: sgtStr,
         status:   f.flight_status||"scheduled",
-        delayMins:f.arrival.delay||0,
+        delayMins,
         exitTime,
       });
     });
