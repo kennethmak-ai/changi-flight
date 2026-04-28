@@ -666,78 +666,74 @@
     return data;
   }
 
+  // ── Convert any ISO timestamp to SGT HH:MM ───────────────────────────────
+  function toSGT(isoStr) {
+    if(!isoStr) return null;
+    try {
+      const d = new Date(isoStr);
+      if(isNaN(d.getTime())) return null;
+      // SGT = UTC+8
+      const utcMs = d.getTime();
+      const sgtMs = utcMs + (8 * 60 * 60 * 1000);
+      const sgt   = new Date(sgtMs);
+      return String(sgt.getUTCHours()).padStart(2,"0") + ":" + String(sgt.getUTCMinutes()).padStart(2,"0");
+    } catch(e) { return null; }
+  }
+
+  function toMinutes(hhmm) {
+    const [h,m] = hhmm.split(":").map(Number);
+    return h*60+m;
+  }
+
   // ── Process raw AviationStack data ────────────────────────────────────────
   function processData(raw) {
     const intlDelay=parseInt(document.getElementById("intl-delay").value)||50;
     const domDelay =parseInt(document.getElementById("dom-delay").value)||20;
 
-    // Determine time window
+    // Determine time window in minutes
     const fromTime = currentMode==="time" && selectedTime ? selectedTime : fmtHHMM(nowSGT());
-    const [fh,fm]  = fromTime.split(":").map(Number);
-    const fromMins = fh*60+fm;
-    const toMins   = fromMins+60; // 1 hour window
+    const fromMins = toMinutes(fromTime);
+    const toMins   = fromMins + 60;
 
     const terminals = {T1:[],T2:[],T3:[],T4:[]};
 
     (raw.data||[]).forEach(f=>{
-      // Use estimated arrival if available, else scheduled
-      const arrRaw = (f.arrival&&f.arrival.estimated) || (f.arrival&&f.arrival.scheduled);
-      if(!arrRaw) return;
+      if(!f.arrival) return;
 
-      // Convert to SGT HH:MM
-      let sgtStr;
-      try {
-        // Add 8 hours for SGT (UTC+8)
-        const d=new Date(arrRaw);
-        const sgtMs=d.getTime()+(8*60*60*1000);
-        const sgtDate=new Date(sgtMs);
-        const hh=String(sgtDate.getUTCHours()).padStart(2,"0");
-        const mm=String(sgtDate.getUTCMinutes()).padStart(2,"0");
-        sgtStr=hh+":"+mm;
-      } catch(e){return;}
+      // Best arrival time: actual > estimated > scheduled
+      const arrIso = f.arrival.actual || f.arrival.estimated || f.arrival.scheduled;
+      if(!arrIso) return;
 
-      const [ah,am]=sgtStr.split(":").map(Number);
-      const arrMins=ah*60+am;
+      const estSGT  = toSGT(arrIso);
+      if(!estSGT) return;
 
-      // Handle midnight crossover
-      let normArr=arrMins, normFrom=fromMins, normTo=toMins;
-      if(normTo>=1440){normTo-=1440; if(normArr<normFrom) normArr+=1440;}
+      const schedSGT = toSGT(f.arrival.scheduled) || estSGT;
+      const arrMins  = toMinutes(estSGT);
 
-      // Only include flights within the 1-hour window
-      if(arrMins<fromMins||arrMins>toMins) return;
+      // Handle midnight wraparound
+      const inWindow = toMins <= 1440
+        ? (arrMins >= fromMins && arrMins <= toMins)
+        : (arrMins >= fromMins || arrMins <= (toMins - 1440));
+
+      if(!inWindow) return;
 
       const term=getTerminal(f);
       if(!terminals[term]) return;
 
-      // Scheduled touchdown for display
-      let schedStr=sgtStr;
-      if(f.arrival&&f.arrival.scheduled){
-        try{
-          const sd=new Date(f.arrival.scheduled);
-          const sMs=sd.getTime()+(8*60*60*1000);
-          const sDate=new Date(sMs);
-          schedStr=String(sDate.getUTCHours()).padStart(2,"0")+":"+String(sDate.getUTCMinutes()).padStart(2,"0");
-        }catch(e){}
-      }
-
-      // Determine if international
-      const depIata=(f.departure&&f.departure.iata)||"";
-      const isIntl=depIata!=="SIN";
-      const delay=isIntl?intlDelay:domDelay;
-      const exitTime=addMins(sgtStr,delay);
-
-      // Delay in mins
-      let delayMins=0;
-      if(f.arrival&&f.arrival.delay) delayMins=parseInt(f.arrival.delay)||0;
+      const depIata  = (f.departure&&f.departure.iata)||"";
+      const isIntl   = depIata !== "SIN";
+      const delay    = isIntl ? intlDelay : domDelay;
+      const exitTime = addMins(estSGT, delay);
+      const delayMins = parseInt(f.arrival.delay)||0;
 
       terminals[term].push({
-        flight: (f.flight&&f.flight.iata)||(f.flight&&f.flight.number)||"—",
-        airline:(f.airline&&f.airline.name)||"—",
-        origin: (f.departure&&f.departure.airport)||"—",
-        type:   isIntl?"international":"domestic",
-        scheduledTouchdown: schedStr,
-        estimatedTouchdown: sgtStr,
-        status:   f.flight_status||"scheduled",
+        flight:  (f.flight&&f.flight.iata) || (f.flight&&f.flight.number) || "—",
+        airline: (f.airline&&f.airline.name) || "—",
+        origin:  (f.departure&&f.departure.airport) || (f.departure&&f.departure.iata) || "—",
+        type:    isIntl ? "international" : "domestic",
+        scheduledTouchdown: schedSGT,
+        estimatedTouchdown: estSGT,
+        status:   f.flight_status || "scheduled",
         delayMins,
         exitTime,
       });
