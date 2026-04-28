@@ -693,7 +693,7 @@
     // Determine time window in minutes
     const fromTime = currentMode==="time" && selectedTime ? selectedTime : fmtHHMM(nowSGT());
     const fromMins = toMinutes(fromTime);
-    const toMins   = fromMins + 60;
+    const toMins   = fromMins + 180; // 3 hour window
 
     const terminals = {T1:[],T2:[],T3:[],T4:[]};
 
@@ -757,7 +757,7 @@
     const allExits=TERMINALS.flatMap(t=>terminals[t].map(f=>f.exitTime)).sort();
     const firstPaxExit=allExits[0]||"—";
 
-    return { terminals, totalFlights, decision, decisionReason, bestTerminal, firstPaxExit, fromTime, toTime: addMins(fromTime,60) };
+    return { terminals, totalFlights, decision, decisionReason, bestTerminal, firstPaxExit, fromTime, toTime: addMins(fromTime,180) };
   }
 
   // ── Render ─────────────────────────────────────────────────────────────────
