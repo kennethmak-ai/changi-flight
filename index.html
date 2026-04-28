@@ -693,10 +693,9 @@
     const intlDelay=parseInt(document.getElementById("intl-delay").value)||50;
     const domDelay =parseInt(document.getElementById("dom-delay").value)||20;
 
-    // Determine time window in minutes
-    const fromTime = currentMode==="time" && selectedTime ? selectedTime : fmtHHMM(nowSGT());
-    const fromMins = toMinutes(fromTime);
-    const toMins   = fromMins + 180; // 3 hour window
+    // Show all incoming flights - no time window filter
+    // Sort by arrival time so earliest shows first
+    const fromTime = fmtHHMM(nowSGT());
 
     const terminals = {T1:[],T2:[],T3:[],T4:[]};
 
@@ -711,14 +710,6 @@
       if(!estSGT) return;
 
       const schedSGT = toSGT(f.arrival.scheduled) || estSGT;
-      const arrMins  = toMinutes(estSGT);
-
-      // Handle midnight wraparound
-      const inWindow = toMins <= 1440
-        ? (arrMins >= fromMins && arrMins <= toMins)
-        : (arrMins >= fromMins || arrMins <= (toMins - 1440));
-
-      if(!inWindow) return;
 
       const term=getTerminal(f);
       if(!terminals[term]) return;
@@ -745,22 +736,45 @@
     // Sort each terminal by touchdown time
     TERMINALS.forEach(t=>terminals[t].sort((a,b)=>a.scheduledTouchdown.localeCompare(b.scheduledTouchdown)));
 
-    // Calculate totals and best terminal
+    // Calculate totals
     const totalFlights=TERMINALS.reduce((s,t)=>s+terminals[t].length,0);
+
+    // Count flights with pax exit within next 3 hours
+    const nowMins=toMinutes(fmtHHMM(nowSGT()));
+    const soonFlights=TERMINALS.flatMap(t=>terminals[t]).filter(f=>{
+      const em=toMinutes(f.exitTime);
+      const diff = em >= nowMins ? em-nowMins : em+1440-nowMins;
+      return diff<=180;
+    });
+
+    // Best terminal by most upcoming pax exits in next 3 hours
     let bestTerminal="", maxFlights=0;
-    TERMINALS.forEach(t=>{if(terminals[t].length>maxFlights){maxFlights=terminals[t].length;bestTerminal=t;}});
+    TERMINALS.forEach(t=>{
+      const count=terminals[t].filter(f=>{
+        const em=toMinutes(f.exitTime);
+        const diff=em>=nowMins?em-nowMins:em+1440-nowMins;
+        return diff<=180;
+      }).length;
+      if(count>maxFlights){maxFlights=count;bestTerminal=t;}
+    });
+    if(!bestTerminal){
+      // fallback: terminal with most total flights
+      TERMINALS.forEach(t=>{if(terminals[t].length>maxFlights){maxFlights=terminals[t].length;bestTerminal=t;}});
+    }
 
-    // Decision
-    const decision = totalFlights>=3?"GO":totalFlights>=1?"MAYBE":"STAY";
+    // Decision based on flights with pax exit in next 3 hours
+    const decision = soonFlights.length>=3?"GO":soonFlights.length>=1?"MAYBE":totalFlights>0?"MAYBE":"STAY";
     const decisionReason = totalFlights===0
-      ? "No flights arriving in this window"
-      : `${totalFlights} flight${totalFlights!==1?"s":""} landing — head to ${bestTerminal||"airport"}`;
+      ? "No active flights heading to Changi"
+      : soonFlights.length>0
+        ? `${soonFlights.length} flight${soonFlights.length!==1?"s":""} with pax out in next 3hrs`
+        : `${totalFlights} flight${totalFlights!==1?"s":""} incoming — earliest pax exit coming`;
 
-    // First pax exit across all terminals
+    // First pax exit across all terminals (sorted)
     const allExits=TERMINALS.flatMap(t=>terminals[t].map(f=>f.exitTime)).sort();
     const firstPaxExit=allExits[0]||"—";
 
-    return { terminals, totalFlights, decision, decisionReason, bestTerminal, firstPaxExit, fromTime, toTime: addMins(fromTime,180) };
+    return { terminals, totalFlights, decision, decisionReason, bestTerminal, firstPaxExit, fromTime, toTime: '' };
   }
 
   // ── Render ─────────────────────────────────────────────────────────────────
@@ -798,21 +812,27 @@
     const wrap=document.getElementById("timeline-wrap");
     wrap.style.display="block";
 
-    // Window: fromTime to fromTime+60min
-    const [fh,fm]=d.fromTime.split(":").map(Number);
-    const winStart=fh*60+fm, winEnd=winStart+60;
+    // Timeline: find min and max exit times across all terminals
+    const allT=Object.values(d.terminals).flat();
+    if(allT.length===0){document.getElementById("timeline-wrap").style.display="none";return;}
+
+    const allMins=allT.map(f=>toMinutes(f.exitTime));
+    const minMins=Math.min(...allMins);
+    const maxMins=Math.max(...allMins);
+    const winStart=minMins-10, winEnd=maxMins+10;
+    const winDur=Math.max(winEnd-winStart,60);
 
     function toPct(hhmm){
       const [h,m]=hhmm.split(":").map(Number);
-      return Math.max(0,Math.min(100,((h*60+m-winStart)/60)*100));
+      return Math.max(0,Math.min(100,((h*60+m-winStart)/winDur)*100));
     }
 
     // Update label and axis
-    document.getElementById("timeline-label").textContent=`FLIGHT EXIT TIMELINE · ${d.fromTime} – ${d.toTime}`;
+    document.getElementById("timeline-label").textContent="FLIGHT EXIT TIMELINE (ALL INCOMING)";
     const axis=document.getElementById("tl-axis");
     axis.innerHTML="";
     for(let i=0;i<=4;i++){
-      const mins=winStart+i*15;
+      const mins=winStart+Math.round(i*winDur/4);
       const lbl=pad(Math.floor(mins/60)%24)+":"+pad(mins%60);
       const sp=document.createElement("span"); sp.textContent=lbl; axis.appendChild(sp);
     }
