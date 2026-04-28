@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-title" content="Changi PHV" />
   <title>Changi PHV · Early Morning Arrivals</title>
 
-  <!-- PWA icon: bright yellow airplane, base64 SVG as PNG -->
+  <!-- PWA Icon: bright yellow airplane -->
   <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='40' fill='%23FFD600'/%3E%3Cg transform='translate(96,96) rotate(-45)'%3E%3Cpath d='M0-60 C8-60 14-54 14-46 L14-10 L50 10 L50 22 L14 14 L14 40 L26 48 L26 58 L0 50 L-26 58 L-26 48 L-14 40 L-14 14 L-50 22 L-50 10 L-14-10 L-14-46 C-14-54-8-60 0-60Z' fill='%23111'/%3E%3C/g%3E%3C/svg%3E" />
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='40' fill='%23FFD600'/%3E%3Cg transform='translate(96,96) rotate(-45)'%3E%3Cpath d='M0-60 C8-60 14-54 14-46 L14-10 L50 10 L50 22 L14 14 L14 40 L26 48 L26 58 L0 50 L-26 58 L-26 48 L-14 40 L-14 14 L-50 22 L-50 10 L-14-10 L-14-46 C-14-54-8-60 0-60Z' fill='%23111'/%3E%3C/g%3E%3C/svg%3E" />
 
@@ -18,177 +18,232 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    /* ── DARK MODE (default) ── */
     :root {
-      --bg:       #060d1a;
-      --surface:  #0d1829;
-      --card:     #101f35;
-      --border:   rgba(255,255,255,0.07);
-      --yellow:   #FFD600;
-      --green:    #22c55e;
-      --green-bg: rgba(34,197,94,0.12);
-      --amber:    #f59e0b;
-      --amber-bg: rgba(245,158,11,0.12);
-      --red:      #ef4444;
-      --red-bg:   rgba(239,68,68,0.12);
-      --t1:       #38bdf8;
-      --t2:       #34d399;
-      --t3:       #f59e0b;
-      --t4:       #f472b6;
-      --muted:    #334155;
-      --dim:      #1e293b;
-      --text:     #f1f5f9;
-      --sub:      #64748b;
-      --mono:     'JetBrains Mono', monospace;
-      --sans:     'Syne', sans-serif;
+      --bg:        #060d1a;
+      --surface:   #0d1829;
+      --card:      #101f35;
+      --border:    rgba(255,255,255,0.07);
+      --text:      #ffffff;
+      --text2:     #ffffff;
+      --sub:       #94a3b8;
+      --muted:     #475569;
+      --dim:       #1e293b;
+      --yellow:    #FFD600;
+      --green:     #22c55e;
+      --green-bg:  rgba(34,197,94,0.12);
+      --amber:     #f59e0b;
+      --amber-bg:  rgba(245,158,11,0.12);
+      --red:       #ef4444;
+      --red-bg:    rgba(239,68,68,0.12);
+      --t1:        #38bdf8;
+      --t2:        #34d399;
+      --t3:        #f59e0b;
+      --t4:        #f472b6;
+      --mono:      'JetBrains Mono', monospace;
+      --sans:      'Syne', sans-serif;
+      --shadow:    none;
+    }
+
+    /* ── LIGHT MODE ── */
+    body.light {
+      --bg:        #f0f4f8;
+      --surface:   #ffffff;
+      --card:      #ffffff;
+      --border:    rgba(0,0,0,0.08);
+      --text:      #0f172a;
+      --text2:     #0f172a;
+      --sub:       #475569;
+      --muted:     #94a3b8;
+      --dim:       #e2e8f0;
+      --shadow:    0 1px 4px rgba(0,0,0,0.08);
     }
 
     html, body {
       background: var(--bg); color: var(--text);
       font-family: var(--sans); min-height: 100vh;
       -webkit-font-smoothing: antialiased;
+      transition: background 0.3s, color 0.3s;
     }
     ::-webkit-scrollbar { width: 3px; }
     ::-webkit-scrollbar-thumb { background: var(--dim); border-radius: 4px; }
 
-    @keyframes spin    { to { transform: rotate(360deg); } }
-    @keyframes fadeUp  { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
-    @keyframes pulse   { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
-    @keyframes ping    { 75%,100% { transform:scale(2); opacity:0; } }
+    @keyframes spin   { to { transform: rotate(360deg); } }
+    @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes ping   { 75%,100% { transform:scale(2); opacity:0; } }
 
-    /* ── STICKY HEADER ── */
+    /* ── HEADER ── */
     #tab-bar {
       position: sticky; top: 0; z-index: 50;
-      background: rgba(6,13,26,0.96);
-      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      background: var(--bg);
       border-bottom: 1px solid var(--border);
+      box-shadow: var(--shadow);
     }
     #header-row {
       padding: 12px 16px;
-      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      display: flex; align-items: center; justify-content: space-between;
     }
     .hdr-left { display: flex; align-items: center; gap: 10px; }
     .app-icon {
-      width: 40px; height: 40px; border-radius: 10px;
+      width: 38px; height: 38px; border-radius: 10px;
       background: var(--yellow); flex-shrink: 0;
       display: flex; align-items: center; justify-content: center;
     }
-    .app-icon svg { width: 24px; height: 24px; }
+    .app-icon svg { width: 22px; height: 22px; }
     .hdr-titles .sub  { font-size: 9px; letter-spacing: 3px; color: var(--yellow); text-transform: uppercase; margin-bottom: 2px; }
-    .hdr-titles .main { font-family: var(--mono); font-size: 14px; font-weight: 900; color: var(--text); letter-spacing: -0.3px; }
-    #clock { text-align: right; }
-    #clock .time { font-family: var(--mono); font-size: 24px; font-weight: 900; color: var(--yellow); line-height: 1; }
-    #clock .tz   { font-size: 9px; color: var(--sub); letter-spacing: 1px; margin-top: 2px; }
+    .hdr-titles .main { font-family: var(--mono); font-size: 13px; font-weight: 900; color: var(--text); }
+    .hdr-right { display: flex; align-items: center; gap: 10px; }
+    #clock-time { font-family: var(--mono); font-size: 22px; font-weight: 900; color: var(--yellow); line-height: 1; }
+    #clock-tz   { font-size: 8px; color: var(--sub); letter-spacing: 1px; margin-top: 2px; text-align: right; }
 
-    /* bottom nav */
+    /* theme toggle */
+    #theme-btn {
+      width: 32px; height: 32px; border-radius: 8px;
+      border: 1px solid var(--border); background: var(--card);
+      font-size: 16px; cursor: pointer; display: flex;
+      align-items: center; justify-content: center;
+      color: var(--text); transition: all 0.2s;
+    }
+
+    /* ── BOTTOM NAV ── */
     #bottom-nav {
       position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
-      display: flex;
-      background: rgba(6,13,26,0.97);
-      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      display: flex; background: var(--bg);
       border-top: 1px solid var(--border);
       padding-bottom: env(safe-area-inset-bottom);
+      box-shadow: var(--shadow);
     }
     .tab-btn {
-      flex: 1; padding: 12px 8px 10px; text-align: center;
-      font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: 2px;
+      flex: 1; padding: 10px 8px 8px; text-align: center;
+      font-family: var(--mono); font-size: 9px; font-weight: 700; letter-spacing: 2px;
       color: var(--sub); background: transparent; border: none; cursor: pointer;
       border-top: 2px solid transparent; transition: all 0.2s;
-      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
     }
     .tab-btn.active { color: var(--yellow); border-top-color: var(--yellow); }
-    .tab-btn .tab-icon { font-size: 16px; }
-    .tab-btn .tab-label { font-size: 9px; letter-spacing: 2px; }
+    .tab-btn .ti { font-size: 18px; }
 
     /* ── PAGES ── */
     .page { display: none; padding: 14px 14px 90px; max-width: 480px; margin: 0 auto; }
     .page.active { display: block; animation: fadeUp 0.3s ease both; }
 
-    /* ── GO SIGNAL ── */
+    /* ── CHECK / SELECT TIME BUTTONS ── */
+    #action-row {
+      display: flex; gap: 10px; margin-bottom: 14px;
+    }
+    .action-btn {
+      flex: 1; padding: 12px 10px; border-radius: 10px;
+      font-family: var(--mono); font-size: 11px; font-weight: 700;
+      letter-spacing: 1px; cursor: pointer; transition: all 0.2s;
+      border: 2px solid var(--border); background: var(--card);
+      color: var(--text);
+    }
+    .action-btn.primary {
+      background: var(--yellow); color: #111;
+      border-color: var(--yellow);
+    }
+    .action-btn.secondary {
+      background: var(--card); color: var(--text);
+      border-color: var(--border);
+    }
+    .action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* time picker row */
+    #time-row {
+      display: none; margin-bottom: 14px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 10px; padding: 12px 14px;
+    }
+    #time-row.show { display: flex; align-items: center; gap: 10px; }
+    #time-row label { font-size: 10px; color: var(--sub); letter-spacing: 2px; white-space: nowrap; }
+    #time-input {
+      flex: 1; padding: 8px 12px; border-radius: 7px;
+      border: 1px solid var(--border); background: var(--bg);
+      color: var(--text); font-family: var(--mono); font-size: 15px;
+      font-weight: 700; outline: none; text-align: center;
+    }
+    #time-input:focus { border-color: var(--yellow); }
+    #time-go-btn {
+      padding: 8px 16px; border-radius: 7px; border: none;
+      background: var(--yellow); color: #111;
+      font-family: var(--mono); font-size: 11px; font-weight: 900;
+      cursor: pointer; letter-spacing: 1px;
+    }
+
+    /* ── SIGNAL CARD ── */
     #signal-card {
       border-radius: 14px; padding: 16px 18px; margin-bottom: 14px;
-      display: flex; align-items: center; justify-content: space-between;
+      display: none; align-items: center; justify-content: space-between;
       border: 1px solid transparent;
     }
     #signal-card.go     { background: var(--green-bg); border-color: rgba(34,197,94,0.3); }
     #signal-card.maybe  { background: var(--amber-bg); border-color: rgba(245,158,11,0.3); }
     #signal-card.stay   { background: var(--red-bg);   border-color: rgba(239,68,68,0.3); }
-    #signal-card.loading{ background: rgba(255,255,255,0.03); border-color: var(--border); }
-    .sig-left .sig-label { font-size: 9px; letter-spacing: 3px; margin-bottom: 5px; }
-    .sig-left .sig-word  { font-family: var(--mono); font-size: 38px; font-weight: 900; line-height: 1; }
-    .sig-left .sig-sub   { font-size: 12px; margin-top: 5px; }
-    .sig-right { text-align: right; }
-    .sig-right .sig-term-label { font-size: 10px; margin-bottom: 6px; }
-    .sig-right .sig-term-box {
+    .sig-word  { font-family: var(--mono); font-size: 36px; font-weight: 900; line-height: 1; }
+    .sig-label { font-size: 9px; letter-spacing: 3px; margin-bottom: 5px; }
+    .sig-sub   { font-size: 12px; margin-top: 5px; }
+    .sig-term-box {
       width: 52px; height: 52px; border-radius: 10px;
       display: flex; align-items: center; justify-content: center;
       font-family: var(--mono); font-size: 18px; font-weight: 900;
       margin-left: auto;
     }
-    .sig-right .sig-pax { font-size: 11px; margin-top: 5px; }
+    .sig-pax { font-size: 11px; margin-top: 5px; text-align: right; }
+    .sig-term-label { font-size: 10px; text-align: right; margin-bottom: 6px; }
 
     /* ── TIMELINE ── */
-    #timeline-wrap { margin-bottom: 14px; }
+    #timeline-wrap { margin-bottom: 14px; display: none; }
     .section-label { font-size: 9px; letter-spacing: 3px; color: var(--sub); margin-bottom: 8px; }
-    #timeline-grid { display: flex; flex-direction: column; gap: 5px; }
-    .tl-row { display: flex; align-items: center; gap: 6px; }
+    .tl-row  { display: flex; align-items: center; gap: 6px; margin-bottom: 5px; }
     .tl-badge {
       width: 26px; height: 26px; border-radius: 6px; flex-shrink: 0;
       display: flex; align-items: center; justify-content: center;
       font-family: var(--mono); font-size: 11px; font-weight: 900;
     }
     .tl-lane {
-      flex: 1; height: 30px; border-radius: 6px;
+      flex: 1; height: 32px; border-radius: 6px;
       background: var(--card); border: 1px solid var(--border);
       position: relative; overflow: hidden;
     }
-    .tl-now {
-      position: absolute; top: 0; bottom: 0; width: 2px;
-      background: var(--red); z-index: 3;
-    }
-    .tl-block {
-      position: absolute; top: 5px; bottom: 5px; width: 6px;
-      border-radius: 2px; z-index: 2;
-    }
-    .tl-lbl {
-      position: absolute; top: 7px;
+    .tl-now  { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--red); z-index: 3; }
+    .tl-block { position: absolute; top: 5px; bottom: 5px; width: 7px; border-radius: 3px; z-index: 2; }
+    .tl-lbl  {
+      position: absolute; top: 8px;
       font-family: var(--mono); font-size: 9px; font-weight: 700;
-      white-space: nowrap; z-index: 2;
+      white-space: nowrap; z-index: 2; color: var(--text);
     }
     .tl-empty {
-      position: absolute; inset: 0;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 10px; color: var(--muted); letter-spacing: 1px;
+      position: absolute; inset: 0; display: flex; align-items: center;
+      justify-content: center; font-size: 10px; color: var(--muted);
     }
     .tl-axis {
       display: flex; justify-content: space-between;
-      margin-left: 32px; padding-top: 4px;
+      margin-left: 32px; padding-top: 3px;
     }
     .tl-axis span { font-size: 9px; color: var(--muted); }
-    .tl-now-label {
-      margin-left: 32px; position: relative; height: 16px; margin-top: 2px;
-    }
+    .tl-now-label { margin-left: 32px; position: relative; height: 14px; margin-top: 2px; }
     .tl-now-label span {
       position: absolute; font-size: 9px; color: var(--red);
-      font-family: var(--mono); font-weight: 700; white-space: nowrap;
-      transform: translateX(-50%);
+      font-family: var(--mono); font-weight: 700;
+      transform: translateX(-50%); white-space: nowrap;
     }
-    .tl-legend {
-      display: flex; gap: 14px; margin-left: 32px; margin-top: 6px;
-    }
+    .tl-legend { display: flex; gap: 14px; margin-left: 32px; margin-top: 6px; flex-wrap: wrap; }
     .tl-legend-item { display: flex; align-items: center; gap: 4px; font-size: 10px; color: var(--sub); }
 
     /* ── TERMINAL CARDS ── */
-    #term-cards { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
+    #term-cards { display: none; flex-direction: column; gap: 10px; margin-bottom: 14px; }
     .term-card {
-      background: var(--card); border-radius: 12px; border: 1px solid var(--border); overflow: hidden;
+      background: var(--card); border-radius: 12px;
+      border: 1px solid var(--border); overflow: hidden;
+      box-shadow: var(--shadow);
     }
-    .term-card.best { border-color: rgba(255,214,0,0.3); }
+    .term-card.best { border-color: rgba(255,214,0,0.4); }
     .tc-header {
-      padding: 10px 14px; display: flex; align-items: center; justify-content: space-between;
-      border-bottom: 1px solid var(--border);
+      padding: 10px 14px; display: flex; align-items: center;
+      justify-content: space-between; border-bottom: 1px solid var(--border);
     }
-    .tc-header-left  { display: flex; align-items: center; gap: 8px; }
-    .tc-badge {
+    .tc-left   { display: flex; align-items: center; gap: 8px; }
+    .tc-badge  {
       width: 30px; height: 30px; border-radius: 7px; flex-shrink: 0;
       display: flex; align-items: center; justify-content: center;
       font-family: var(--mono); font-size: 12px; font-weight: 900;
@@ -196,64 +251,48 @@
     .tc-name   { font-size: 13px; font-weight: 700; color: var(--text); }
     .tc-count  { font-size: 10px; color: var(--sub); margin-top: 1px; }
     .best-pill {
-      font-size: 9px; padding: 3px 9px; border-radius: 20px;
+      font-size: 9px; padding: 3px 8px; border-radius: 20px;
       background: var(--yellow); color: #111; font-weight: 700; letter-spacing: 1px;
     }
-    .tc-times  { font-family: var(--mono); font-size: 12px; color: var(--sub); }
+    .tc-times   { font-family: var(--mono); font-size: 11px; color: var(--sub); }
     .tc-noflight { font-size: 11px; color: var(--muted); }
 
+    /* flight table */
     .tc-flights { padding: 8px 14px 10px; }
     .tc-col-hdr {
-      display: grid; grid-template-columns: 1fr 64px 64px;
-      font-size: 9px; color: var(--muted); letter-spacing: 1.5px;
+      display: grid; grid-template-columns: 1fr 64px 72px;
+      font-size: 9px; color: var(--text); letter-spacing: 1.5px;
       padding-bottom: 6px; border-bottom: 1px solid var(--border); margin-bottom: 4px;
+      font-weight: 700;
     }
     .tc-col-hdr span:not(:first-child) { text-align: center; }
-    .tc-flight-row {
-      display: grid; grid-template-columns: 1fr 64px 64px;
-      padding: 6px 0; border-bottom: 1px solid var(--border); align-items: center;
+    .tc-row {
+      display: grid; grid-template-columns: 1fr 64px 72px;
+      padding: 7px 0; border-bottom: 1px solid var(--border); align-items: center;
     }
-    .tc-flight-row:last-child { border-bottom: none; }
-    .tc-flight-row.past { opacity: 0.35; }
-    .fr-info .fr-num    { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--text); }
-    .fr-info .fr-origin { font-size: 10px; color: var(--sub); margin-top: 1px; }
-    .fr-land { font-family: var(--mono); font-size: 13px; text-align: center; }
-    .fr-exit { font-family: var(--mono); font-size: 13px; font-weight: 700; text-align: center; }
+    .tc-row:last-child { border-bottom: none; }
+    .tc-row.past { opacity: 0.35; }
+    .fr-num    { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--text); }
+    .fr-origin { font-size: 10px; color: var(--sub); margin-top: 1px; }
+    .fr-land   { font-family: var(--mono); font-size: 13px; text-align: center; color: var(--text); }
+    .fr-exit   { font-family: var(--mono); font-size: 13px; font-weight: 700; text-align: center; }
+    .fr-soon   { /* highlighted pax exit — colour set inline */ }
 
-    /* ── NO DATA ── */
+    /* ── STATES ── */
     #no-key-msg {
-      background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.25);
-      border-radius: 12px; padding: 18px; text-align: center; margin-bottom: 14px; display: none;
+      background: var(--amber-bg); border: 1px solid rgba(245,158,11,0.3);
+      border-radius: 12px; padding: 20px; text-align: center;
+      margin-bottom: 14px; display: none;
     }
-    #no-key-msg .nk-icon { font-size: 28px; margin-bottom: 8px; }
+    #no-key-msg .nk-icon  { font-size: 28px; margin-bottom: 8px; }
     #no-key-msg .nk-title { font-size: 14px; font-weight: 700; color: var(--amber); margin-bottom: 6px; }
     #no-key-msg .nk-sub   { font-size: 12px; color: var(--sub); line-height: 1.6; }
 
     #error-box {
-      background: var(--red-bg); border: 1px solid rgba(239,68,68,0.25);
+      background: var(--red-bg); border: 1px solid rgba(239,68,68,0.3);
       border-radius: 12px; padding: 12px 14px; margin-bottom: 14px;
       font-size: 12px; color: var(--red); line-height: 1.6; display: none;
     }
-
-    /* ── FOOTER ── */
-    #footer {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 10px 12px; background: rgba(255,255,255,0.02);
-      border-radius: 10px; border: 1px solid var(--border);
-    }
-    #footer .copy  { font-size: 9px; color: var(--muted); letter-spacing: 1px; }
-    #footer .right { display: flex; align-items: center; gap: 10px; }
-    #last-checked  { font-size: 9px; color: var(--sub); }
-    #refresh-btn {
-      padding: 6px 14px; border-radius: 6px; border: 1px solid var(--yellow);
-      background: transparent; color: var(--yellow); font-family: var(--mono);
-      font-size: 10px; font-weight: 700; letter-spacing: 1px; cursor: pointer;
-      transition: background 0.2s;
-    }
-    #refresh-btn:hover   { background: rgba(255,214,0,0.1); }
-    #refresh-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-    /* ── LOADING SPINNER ── */
     #loading-state {
       display: none; align-items: center; justify-content: center;
       padding: 60px 20px; gap: 14px;
@@ -266,21 +305,30 @@
     }
     #loading-state span { font-size: 11px; color: var(--sub); letter-spacing: 2px; }
 
+    /* footer */
+    #footer {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 12px; background: var(--card);
+      border-radius: 10px; border: 1px solid var(--border);
+    }
+    #footer .copy  { font-size: 9px; color: var(--muted); letter-spacing: 1px; }
+    #last-checked  { font-size: 9px; color: var(--sub); }
+
     /* ── SETTINGS ── */
     .set-section {
       background: var(--card); border: 1px solid var(--border);
       border-radius: 14px; padding: 18px; margin-bottom: 14px;
+      box-shadow: var(--shadow);
     }
     .set-section h3 {
       font-family: var(--mono); font-size: 10px; font-weight: 700;
       color: var(--yellow); letter-spacing: 3px; text-transform: uppercase;
       margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--border);
     }
-    .set-row { margin-bottom: 14px; }
     .set-lbl { font-size: 10px; color: var(--sub); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 7px; display: block; }
     .set-input {
       width: 100%; padding: 10px 13px; border-radius: 8px;
-      border: 1px solid var(--dim); background: rgba(0,0,0,0.4);
+      border: 1px solid var(--border); background: var(--bg);
       color: var(--text); font-family: var(--mono); font-size: 13px; outline: none;
       transition: border-color 0.2s;
     }
@@ -290,14 +338,13 @@
       width: 100%; padding: 12px; border-radius: 8px; border: none;
       background: var(--yellow); color: #111;
       font-family: var(--mono); font-size: 12px; font-weight: 900;
-      letter-spacing: 2px; cursor: pointer; transition: opacity 0.2s;
+      letter-spacing: 2px; cursor: pointer; margin-top: 10px;
     }
-    .set-save:hover { opacity: 0.85; }
-    .set-confirm { text-align: center; font-size: 11px; color: var(--green); margin-top: 10px; display: none; letter-spacing: 1px; }
+    .set-confirm { text-align: center; font-size: 11px; color: var(--green); margin-top: 10px; display: none; }
     .set-clear {
-      padding: 7px 14px; border-radius: 6px; border: 1px solid var(--muted);
+      padding: 7px 14px; border-radius: 6px; border: 1px solid var(--border);
       background: transparent; color: var(--sub); font-family: var(--mono);
-      font-size: 10px; cursor: pointer; margin-top: 8px; letter-spacing: 1px;
+      font-size: 10px; cursor: pointer; margin-top: 8px;
     }
     .api-status {
       display: flex; align-items: center; gap: 8px; padding: 10px 13px;
@@ -313,8 +360,6 @@
     .set-info-row:last-child { border-bottom: none; }
     .set-info-key { color: var(--sub); }
     .set-info-val { font-family: var(--mono); color: var(--text); font-size: 11px; }
-
-    /* delay slider */
     .delay-row { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
     .delay-row input[type=range] { flex: 1; accent-color: var(--yellow); }
     .delay-val { font-family: var(--mono); font-size: 13px; color: var(--yellow); min-width: 40px; text-align: right; }
@@ -322,7 +367,7 @@
 </head>
 <body>
 
-  <!-- ── TAB BAR ── -->
+  <!-- HEADER -->
   <div id="tab-bar">
     <div id="header-row">
       <div class="hdr-left">
@@ -336,22 +381,41 @@
           <div class="main">Early Morning Arrivals</div>
         </div>
       </div>
-      <div id="clock">
-        <div class="time" id="clock-time">--:--</div>
-        <div class="tz">SGT · 03:00–07:00</div>
+      <div class="hdr-right">
+        <button id="theme-btn" onclick="toggleTheme()">🌙</button>
+        <div>
+          <div id="clock-time">--:--</div>
+          <div id="clock-tz">SGT</div>
+        </div>
       </div>
     </div>
-
   </div>
 
   <!-- ══ ARRIVALS PAGE ══ -->
   <div id="page-arrivals" class="page active">
 
-    <!-- No key message -->
+    <!-- Check Now / Select Time -->
+    <div id="action-row">
+      <button class="action-btn primary" id="check-now-btn" onclick="handleCheckNow()">
+        ✈ CHECK NOW
+      </button>
+      <button class="action-btn secondary" onclick="handleSelectTime()">
+        🕐 SELECT TIME
+      </button>
+    </div>
+
+    <!-- Time picker (hidden by default) -->
+    <div id="time-row">
+      <label>FROM TIME</label>
+      <input type="text" id="time-input" placeholder="03:00" maxlength="5" />
+      <button id="time-go-btn" onclick="handleTimeGo()">GO</button>
+    </div>
+
+    <!-- No key -->
     <div id="no-key-msg">
       <div class="nk-icon">🔑</div>
-      <div class="nk-title">Gemini API Key Required</div>
-      <div class="nk-sub">Tap ⚙ SETTINGS to enter your Google Gemini API key.<br/>Get one free at <strong>aistudio.google.com</strong></div>
+      <div class="nk-title">Setup Required</div>
+      <div class="nk-sub">Tap ⚙ SETTINGS to enter your Worker URL.<br/>This connects the app to live Changi flight data.</div>
     </div>
 
     <!-- Error -->
@@ -360,17 +424,17 @@
     <!-- Loading -->
     <div id="loading-state">
       <div class="spinner"></div>
-      <span>FETCHING ARRIVALS…</span>
+      <span>FETCHING LIVE FLIGHTS…</span>
     </div>
 
-    <!-- GO Signal -->
-    <div id="signal-card" class="loading" style="display:none;">
-      <div class="sig-left">
+    <!-- Signal -->
+    <div id="signal-card">
+      <div>
         <div class="sig-label" id="sig-label">WORTH THE DRIVE?</div>
         <div class="sig-word"  id="sig-word">—</div>
         <div class="sig-sub"   id="sig-sub"></div>
       </div>
-      <div class="sig-right">
+      <div style="text-align:right;">
         <div class="sig-term-label" id="sig-term-label"></div>
         <div class="sig-term-box"   id="sig-term-box"></div>
         <div class="sig-pax"        id="sig-pax"></div>
@@ -378,12 +442,10 @@
     </div>
 
     <!-- Timeline -->
-    <div id="timeline-wrap" style="display:none;">
-      <div class="section-label">FULL PICTURE · 03:00 – 07:00</div>
+    <div id="timeline-wrap">
+      <div class="section-label" id="timeline-label">FLIGHT EXIT TIMELINE</div>
       <div id="timeline-grid"></div>
-      <div class="tl-axis">
-        <span>03:00</span><span>04:00</span><span>05:00</span><span>06:00</span><span>07:00</span>
-      </div>
+      <div class="tl-axis" id="tl-axis"></div>
       <div class="tl-now-label"><span id="now-label"></span></div>
       <div class="tl-legend">
         <div class="tl-legend-item"><div style="width:10px;height:10px;border-radius:2px;background:var(--amber);"></div> pax exit</div>
@@ -392,18 +454,14 @@
       </div>
     </div>
 
-    <!-- Terminal cards -->
-    <div id="term-cards" style="display:none;">
-      <div class="section-label">ALL FLIGHTS BY TERMINAL</div>
-    </div>
+    <!-- Terminal Cards -->
+    <div id="term-section-label" class="section-label" style="display:none;">ALL FLIGHTS BY TERMINAL</div>
+    <div id="term-cards"></div>
 
     <!-- Footer -->
     <div id="footer">
-      <span class="copy">DATA VIA GOOGLE GEMINI</span>
-      <div class="right">
-        <span id="last-checked">—</span>
-        <button id="refresh-btn" onclick="triggerRefresh()">↺ CHECK NOW</button>
-      </div>
+      <span class="copy">LIVE DATA · AVIATIONSTACK</span>
+      <span id="last-checked">—</span>
     </div>
   </div>
 
@@ -411,63 +469,85 @@
   <div id="page-settings" class="page">
 
     <div class="set-section">
-      <h3>🤖 AI Scanning (Gemini)</h3>
-      <div id="api-status-box" class="api-status notset">
-        <div class="s-dot" id="s-dot" style="background:var(--red)"></div>
-        <span id="s-txt">No API key saved</span>
+      <h3>🔌 Cloudflare Worker URL</h3>
+      <div id="worker-status-box" class="api-status notset">
+        <div class="s-dot" id="worker-dot" style="background:var(--red)"></div>
+        <span id="worker-txt">No Worker URL saved</span>
       </div>
-      <div class="set-row">
-        <label class="set-lbl">Gemini API Key</label>
-        <input id="api-input" class="set-input" type="password" placeholder="AIza..." autocomplete="off" />
-        <div class="set-hint">Get your free key at <strong style="color:var(--yellow)">aistudio.google.com</strong> → Get API key → Create API key.<br/>Saved on this device only — never in the code or GitHub.</div>
+      <div style="margin-bottom:14px;">
+        <label class="set-lbl">Worker URL</label>
+        <input id="worker-input" class="set-input" type="text"
+          placeholder="https://changi-phv-proxy.ken-makcs.workers.dev" autocomplete="off" />
+        <div class="set-hint">Your Cloudflare Worker URL. This is your personal flight data proxy.</div>
       </div>
-      <button class="set-save" onclick="saveKey()">SAVE API KEY</button>
-      <div class="set-confirm" id="set-confirm">✓ KEY SAVED</div><br/>
-      <button class="set-clear" onclick="clearKey()">✕ Clear saved key</button>
+      <button class="set-save" onclick="saveWorkerUrl()">SAVE WORKER URL</button>
+      <div class="set-confirm" id="worker-confirm">✓ WORKER URL SAVED</div>
     </div>
 
     <div class="set-section">
       <h3>⏱ Exit Delay Settings</h3>
-      <div class="set-row">
+      <div style="margin-bottom:14px;">
         <label class="set-lbl">International flights (mins after touchdown)</label>
         <div class="delay-row">
-          <input type="range" min="30" max="90" step="5" id="intl-delay" value="50" oninput="document.getElementById('intl-val').textContent=this.value+'m'" />
+          <input type="range" min="30" max="90" step="5" id="intl-delay" value="50"
+            oninput="document.getElementById('intl-val').textContent=this.value+'m'" />
           <span class="delay-val" id="intl-val">50m</span>
         </div>
       </div>
-      <div class="set-row">
+      <div>
         <label class="set-lbl">Domestic flights (mins after touchdown)</label>
         <div class="delay-row">
-          <input type="range" min="10" max="40" step="5" id="dom-delay" value="20" oninput="document.getElementById('dom-val').textContent=this.value+'m'" />
+          <input type="range" min="10" max="40" step="5" id="dom-delay" value="20"
+            oninput="document.getElementById('dom-val').textContent=this.value+'m'" />
           <span class="delay-val" id="dom-val">20m</span>
         </div>
       </div>
-      <div class="set-hint">Adjust based on your experience. International default 50 min (passport + bags). Domestic default 20 min.</div>
+      <div class="set-hint" style="margin-top:10px;">Adjust based on your experience at the airport.</div>
     </div>
 
     <div class="set-section">
       <h3>ℹ App Info</h3>
       <div class="set-info-row"><span class="set-info-key">App</span><span class="set-info-val">Changi PHV Arrivals</span></div>
-      <div class="set-info-row"><span class="set-info-key">Window</span><span class="set-info-val">03:00 – 07:00 SGT</span></div>
-      <div class="set-info-row"><span class="set-info-key">AI Provider</span><span class="set-info-val">Google Gemini 2.5 Flash</span></div>
-      <div class="set-info-row"><span class="set-info-key">Data refresh</span><span class="set-info-val">Manual (tap Check Now)</span></div>
-      <div class="set-info-row"><span class="set-info-key">Version</span><span class="set-info-val">2.0.0</span></div>
+      <div class="set-info-row"><span class="set-info-key">Data source</span><span class="set-info-val">AviationStack (live)</span></div>
+      <div class="set-info-row"><span class="set-info-key">Proxy</span><span class="set-info-val">Cloudflare Workers</span></div>
+      <div class="set-info-row"><span class="set-info-key">Pax highlight</span><span class="set-info-val">Within 30 mins</span></div>
+      <div class="set-info-row"><span class="set-info-key">Version</span><span class="set-info-val">3.0.0</span></div>
     </div>
   </div>
 
+  <!-- BOTTOM NAV -->
+  <div id="bottom-nav">
+    <button class="tab-btn active" onclick="switchTab(this,'arrivals')">
+      <span class="ti">✈</span><span>ARRIVALS</span>
+    </button>
+    <button class="tab-btn" onclick="switchTab(this,'settings')">
+      <span class="ti">⚙</span><span>SETTINGS</span>
+    </button>
+  </div>
+
   <script>
-  // ── Config ─────────────────────────────────────────────────────────────────
+  // ── Constants ──────────────────────────────────────────────────────────────
   const TERMINALS   = ["T1","T2","T3","T4"];
   const T_COLORS    = { T1:"#38bdf8", T2:"#34d399", T3:"#f59e0b", T4:"#f472b6" };
   const T_LABELS    = { T1:"Terminal 1", T2:"Terminal 2", T3:"Terminal 3", T4:"Terminal 4" };
-  const STORAGE_KEY = "mdl_gemini_api_key";
-  // window start/end in minutes from midnight
-  const WIN_START = 3*60, WIN_END = 7*60, WIN_DUR = WIN_END - WIN_START; // 240 min
+  const WORKER_KEY  = "changi_phv_worker_url";
+  // Terminal mapping from airline to terminal (Changi known assignments)
+  const AIRLINE_TERMINAL = {
+    "SQ":"T3","MI":"T1","TR":"T1","SL":"T1",
+    "EK":"T1","QF":"T1","NZ":"T1","AI":"T1",
+    "CX":"T1","KA":"T1","BA":"T1","QR":"T1","TG":"T1",
+    "MH":"T1","GA":"T1","CI":"T1","BR":"T1",
+    "OZ":"T1","KE":"T1","NH":"T1","JL":"T1",
+    "LH":"T1","AF":"T1","KL":"T1","AC":"T1",
+    "UL":"T1","BG":"T1","VN":"T1",
+    "3K":"T1","FD":"T1","AK":"T1","QZ":"T1",
+  };
 
-  let isLoading = false;
-  let lastData  = null;
+  let isLoading   = false;
+  let currentMode = "now"; // "now" or "time"
+  let selectedTime = null; // HH:MM string
 
-  // ── Helpers ────────────────────────────────────────────────────────────────
+  // ── Time helpers ───────────────────────────────────────────────────────────
   function nowSGT() {
     return new Date(new Date().toLocaleString("en-US",{timeZone:"Asia/Singapore"}));
   }
@@ -479,18 +559,22 @@
     const d=nowSGT(); d.setHours(h,m,0,0); return d;
   }
   function minsUntil(d) { return Math.round((d-nowSGT())/60000); }
-  function toWinPct(hhmm) {
+  function addMins(hhmm, mins) {
     const [h,m]=hhmm.split(":").map(Number);
-    return Math.max(0,Math.min(100,((h*60+m-WIN_START)/WIN_DUR)*100));
+    const total=h*60+m+mins;
+    return pad(Math.floor(total/60)%24)+":"+pad(total%60);
   }
-  function nowWinPct() {
-    const n=nowSGT(); return Math.max(0,Math.min(100,((n.getHours()*60+n.getMinutes()-WIN_START)/WIN_DUR)*100));
-  }
+  function pad(n){return String(n).padStart(2,"0");}
   function updateClock() {
-    document.getElementById("clock-time").textContent = fmtHHMM(nowSGT());
+    document.getElementById("clock-time").textContent=fmtHHMM(nowSGT());
   }
-  function getIntlDelay() { return parseInt(document.getElementById("intl-delay").value)||50; }
-  function getDomDelay()  { return parseInt(document.getElementById("dom-delay").value)||20; }
+
+  // ── Theme ──────────────────────────────────────────────────────────────────
+  function toggleTheme() {
+    document.body.classList.toggle("light");
+    document.getElementById("theme-btn").textContent =
+      document.body.classList.contains("light") ? "🌙" : "☀️";
+  }
 
   // ── Tab ────────────────────────────────────────────────────────────────────
   function switchTab(btn,tab) {
@@ -498,271 +582,325 @@
     document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
     document.getElementById("page-"+tab).classList.add("active");
     btn.classList.add("active");
-    renderApiStatus();
+    if(tab==="settings") renderWorkerStatus();
   }
 
-  // ── API Key ────────────────────────────────────────────────────────────────
-  function getKey()  { return localStorage.getItem("mdl_gemini_api_key")||""; }
-  function saveKey() {
-    const v=document.getElementById("api-input").value.trim();
-    if(!v){alert("Please enter your Gemini API key.");return;}
-    // Don't save if it's the masked display value
-    if(v.includes("••")){alert("Please enter your actual API key.");return;}
-    localStorage.setItem("mdl_gemini_api_key",v);
-    renderApiStatus();
-    const c=document.getElementById("set-confirm");
+  // ── Worker URL ─────────────────────────────────────────────────────────────
+  function getWorkerUrl() { return localStorage.getItem(WORKER_KEY)||""; }
+  function saveWorkerUrl() {
+    const v=document.getElementById("worker-input").value.trim();
+    if(!v){alert("Please enter your Worker URL.");return;}
+    localStorage.setItem(WORKER_KEY,v);
+    renderWorkerStatus();
+    const c=document.getElementById("worker-confirm");
     c.style.display="block"; setTimeout(()=>c.style.display="none",3000);
-    triggerRefresh();
   }
-  function clearKey() {
-    if(!confirm("Clear saved API key?"))return;
-    localStorage.removeItem("mdl_gemini_api_key");
-    document.getElementById("api-input").value="";
-    renderApiStatus();
-  }
-  function renderApiStatus() {
-    const k=getKey();
-    const box=document.getElementById("api-status-box");
-    const dot=document.getElementById("s-dot");
-    const txt=document.getElementById("s-txt");
-    const inp=document.getElementById("api-input");
-    if(k){
+  function renderWorkerStatus() {
+    const url=getWorkerUrl();
+    const box=document.getElementById("worker-status-box");
+    const dot=document.getElementById("worker-dot");
+    const txt=document.getElementById("worker-txt");
+    const inp=document.getElementById("worker-input");
+    if(url){
       box.className="api-status set"; dot.style.background="var(--green)";
-      txt.textContent="Gemini key saved ("+k.slice(0,8)+"••••)";
-      inp.placeholder="Enter new key to replace...";
-      // show key is saved visually even if input is empty
-      if(!inp.value) inp.value = k.slice(0,4)+"••••••••••••••••••••••••••••••••";
+      txt.textContent="Worker URL saved";
+      inp.value=url;
     } else {
       box.className="api-status notset"; dot.style.background="var(--red)";
-      txt.textContent="No API key saved"; inp.placeholder="AIza...";
-      inp.value = "";
+      txt.textContent="No Worker URL saved";
     }
   }
 
-  // ── Gemini fetch ───────────────────────────────────────────────────────────
+  // ── Action buttons ─────────────────────────────────────────────────────────
+  function handleCheckNow() {
+    currentMode="now";
+    document.getElementById("time-row").classList.remove("show");
+    loadData();
+  }
+
+  function handleSelectTime() {
+    currentMode="time";
+    const tr=document.getElementById("time-row");
+    tr.classList.add("show");
+    // pre-fill with current SGT time
+    const inp=document.getElementById("time-input");
+    inp.value=fmtHHMM(nowSGT());
+    inp.focus();
+    inp.select();
+  }
+
+  function handleTimeGo() {
+    const val=document.getElementById("time-input").value.trim();
+    if(!/^\d{1,2}:\d{2}$/.test(val)){alert("Please enter time in HH:MM format e.g. 04:30");return;}
+    const [h,m]=val.split(":").map(Number);
+    if(h>23||m>59){alert("Invalid time.");return;}
+    selectedTime=pad(h)+":"+pad(m);
+    loadData();
+  }
+
+  // ── Determine terminal from flight code ────────────────────────────────────
+  function getTerminal(flight) {
+    // Try from arrival terminal field first
+    if(flight.arrival && flight.arrival.terminal) {
+      return "T"+flight.arrival.terminal;
+    }
+    // Fall back to airline mapping
+    const code=(flight.airline&&flight.airline.iata)||"";
+    return AIRLINE_TERMINAL[code]||"T1";
+  }
+
+  // ── Fetch live data ────────────────────────────────────────────────────────
   async function fetchData() {
-    const key=getKey();
-    if(!key){
+    const workerUrl=getWorkerUrl();
+    if(!workerUrl){
       document.getElementById("no-key-msg").style.display="block";
       document.getElementById("loading-state").classList.remove("show");
       return null;
     }
     document.getElementById("no-key-msg").style.display="none";
 
-    const now=nowSGT();
-    const timeStr=fmtHHMM(now);
-    const dateStr=now.toLocaleDateString("en-SG",{timeZone:"Asia/Singapore",weekday:"long",year:"numeric",month:"long",day:"numeric"});
-    const intlDelay=getIntlDelay(), domDelay=getDomDelay();
-
-    const prompt=`You are a Changi Airport flight data assistant. Current Singapore time: ${timeStr} SGT, ${dateStr}.
-
-A PHV driver works 3:00 AM – 7:00 AM SGT and needs to decide if it is worth driving to the airport. Provide all flights arriving at Changi Airport (SIN) from NOW until 07:00 SGT, grouped by terminal.
-
-Return ONLY valid JSON, no markdown fences, no explanation:
-
-{
-  "terminals": {
-    "T1": [{"flight":"SQ123","airline":"Singapore Airlines","origin":"London (LHR)","type":"international","scheduledTouchdown":"04:35","estimatedTouchdown":"04:35","delayMins":0,"exitTime":"05:25"}],
-    "T2": [], "T3": [], "T4": []
-  },
-  "totalFlights": 5,
-  "decision": "GO",
-  "decisionReason": "4 flights landing across T3 and T1 in next 60 mins",
-  "bestTerminal": "T3",
-  "firstPaxExit": "04:15",
-  "confidence": "medium"
-}
-
-Rules:
-- Only flights touching down between NOW (${timeStr}) and 07:00 SGT.
-- exitTime = estimatedTouchdown + ${intlDelay} min for international, + ${domDelay} min for domestic.
-- Empty array [] if no flights for a terminal.
-- All times HH:MM 24h SGT.
-- decision: "GO" if 3+ flights in next 60 mins, "MAYBE" if 1-2 flights, "STAY" if no flights soon.
-- bestTerminal = terminal with most upcoming pax exits.
-- firstPaxExit = earliest upcoming exit time across all terminals.
-- confidence: "high" certain, "medium" approximate, "low" guessing.
-- Use your knowledge of typical SIN scheduled services on ${dateStr.split(",")[0]} early morning.`;
-
-    const resp=await fetch(
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key='+key,
-      {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({
-          contents:[{parts:[{text:prompt}]}]
-        })
-      }
-    );
+    const resp=await fetch(workerUrl);
+    if(!resp.ok) throw new Error("Worker returned "+resp.status);
     const data=await resp.json();
-    if(data.error) throw new Error(data.error.message);
-    const raw=data.contents?.[0]?.parts?.[0]?.text||data.candidates?.[0]?.content?.parts?.[0]?.text||'';
-    return JSON.parse(raw.replace(/```json|```/g,'').trim());
+    if(data.error) throw new Error(data.error.message||"API error");
+    return data;
   }
 
-  // ── Render signal card ─────────────────────────────────────────────────────
-  function renderSignal(data) {
+  // ── Process raw AviationStack data ────────────────────────────────────────
+  function processData(raw) {
+    const intlDelay=parseInt(document.getElementById("intl-delay").value)||50;
+    const domDelay =parseInt(document.getElementById("dom-delay").value)||20;
+
+    // Determine time window
+    const fromTime = currentMode==="time" && selectedTime ? selectedTime : fmtHHMM(nowSGT());
+    const [fh,fm]  = fromTime.split(":").map(Number);
+    const fromMins = fh*60+fm;
+    const toMins   = fromMins+60; // 1 hour window
+
+    const terminals = {T1:[],T2:[],T3:[],T4:[]};
+
+    (raw.data||[]).forEach(f=>{
+      // Get scheduled arrival time
+      const arrTime = f.arrival&&f.arrival.scheduled ? f.arrival.scheduled : null;
+      if(!arrTime) return;
+
+      // Parse HH:MM from ISO string
+      const d=new Date(arrTime);
+      const sgtStr=d.toLocaleTimeString("en-SG",{timeZone:"Asia/Singapore",hour:"2-digit",minute:"2-digit",hour12:false});
+      const [ah,am]=sgtStr.split(":").map(Number);
+      const arrMins=ah*60+am;
+
+      // Only include flights within the 1-hour window
+      if(arrMins<fromMins||arrMins>toMins) return;
+
+      const term=getTerminal(f);
+      if(!terminals[term]) return;
+
+      // Determine if international (non-Singapore origin)
+      const depCountry=(f.departure&&f.departure.country)||"";
+      const isIntl=depCountry!=="Singapore";
+      const delay=isIntl?intlDelay:domDelay;
+      const exitTime=addMins(sgtStr,delay);
+
+      terminals[term].push({
+        flight: (f.flight&&f.flight.iata)||"—",
+        airline:(f.airline&&f.airline.name)||"—",
+        origin: (f.departure&&f.departure.airport)||"—",
+        type:   isIntl?"international":"domestic",
+        scheduledTouchdown: sgtStr,
+        estimatedTouchdown: f.arrival.estimated
+          ? new Date(f.arrival.estimated).toLocaleTimeString("en-SG",{timeZone:"Asia/Singapore",hour:"2-digit",minute:"2-digit",hour12:false})
+          : sgtStr,
+        status:   f.flight_status||"scheduled",
+        delayMins:f.arrival.delay||0,
+        exitTime,
+      });
+    });
+
+    // Sort each terminal by touchdown time
+    TERMINALS.forEach(t=>terminals[t].sort((a,b)=>a.scheduledTouchdown.localeCompare(b.scheduledTouchdown)));
+
+    // Calculate totals and best terminal
+    const totalFlights=TERMINALS.reduce((s,t)=>s+terminals[t].length,0);
+    let bestTerminal="", maxFlights=0;
+    TERMINALS.forEach(t=>{if(terminals[t].length>maxFlights){maxFlights=terminals[t].length;bestTerminal=t;}});
+
+    // Decision
+    const decision = totalFlights>=3?"GO":totalFlights>=1?"MAYBE":"STAY";
+    const decisionReason = totalFlights===0
+      ? "No flights arriving in this window"
+      : `${totalFlights} flight${totalFlights!==1?"s":""} landing — head to ${bestTerminal||"airport"}`;
+
+    // First pax exit across all terminals
+    const allExits=TERMINALS.flatMap(t=>terminals[t].map(f=>f.exitTime)).sort();
+    const firstPaxExit=allExits[0]||"—";
+
+    return { terminals, totalFlights, decision, decisionReason, bestTerminal, firstPaxExit, fromTime, toTime: addMins(fromTime,60) };
+  }
+
+  // ── Render ─────────────────────────────────────────────────────────────────
+  function renderSignal(d) {
     const card=document.getElementById("signal-card");
     card.style.display="flex";
-    const dec=data.decision||"STAY";
+    const dec=d.decision;
     card.className=dec==="GO"?"go":dec==="MAYBE"?"maybe":"stay";
-
     const col=dec==="GO"?"var(--green)":dec==="MAYBE"?"var(--amber)":"var(--red)";
+
     document.getElementById("sig-label").style.color=col;
-    document.getElementById("sig-label").textContent="WORTH THE DRIVE?";
     document.getElementById("sig-word").style.color=col;
     document.getElementById("sig-word").textContent=dec;
     document.getElementById("sig-sub").style.color=col;
-    document.getElementById("sig-sub").textContent=data.decisionReason||"";
+    document.getElementById("sig-sub").textContent=d.decisionReason;
 
-    const tc=T_COLORS[data.bestTerminal]||"var(--yellow)";
-    const termBox=document.getElementById("sig-term-box");
-    if(data.bestTerminal && dec!=="STAY"){
+    if(d.bestTerminal && dec!=="STAY"){
+      const tc=T_COLORS[d.bestTerminal];
       document.getElementById("sig-term-label").textContent="Head to";
       document.getElementById("sig-term-label").style.color=col;
-      termBox.textContent=data.bestTerminal;
-      termBox.style.background=tc+"22";
-      termBox.style.border="1px solid "+tc+"66";
-      termBox.style.color=tc;
-      document.getElementById("sig-pax").textContent=data.firstPaxExit?"first pax "+data.firstPaxExit:"";
+      const tb=document.getElementById("sig-term-box");
+      tb.textContent=d.bestTerminal; tb.style.color=tc;
+      tb.style.background=tc+"22"; tb.style.border="1px solid "+tc+"66";
+      document.getElementById("sig-pax").textContent=d.firstPaxExit!=="—"?"first pax "+d.firstPaxExit:"";
       document.getElementById("sig-pax").style.color=col;
     } else {
       document.getElementById("sig-term-label").textContent="";
-      termBox.textContent=""; termBox.style.background="transparent"; termBox.style.border="none";
+      const tb=document.getElementById("sig-term-box");
+      tb.textContent=""; tb.style.background="transparent"; tb.style.border="none";
       document.getElementById("sig-pax").textContent="";
     }
   }
 
-  // ── Render timeline ────────────────────────────────────────────────────────
-  function renderTimeline(data) {
+  function renderTimeline(d) {
     const wrap=document.getElementById("timeline-wrap");
     wrap.style.display="block";
-    const grid=document.getElementById("timeline-grid");
-    grid.innerHTML="";
 
-    const nowPct=nowWinPct();
+    // Window: fromTime to fromTime+60min
+    const [fh,fm]=d.fromTime.split(":").map(Number);
+    const winStart=fh*60+fm, winEnd=winStart+60;
+
+    function toPct(hhmm){
+      const [h,m]=hhmm.split(":").map(Number);
+      return Math.max(0,Math.min(100,((h*60+m-winStart)/60)*100));
+    }
+
+    // Update label and axis
+    document.getElementById("timeline-label").textContent=`FLIGHT EXIT TIMELINE · ${d.fromTime} – ${d.toTime}`;
+    const axis=document.getElementById("tl-axis");
+    axis.innerHTML="";
+    for(let i=0;i<=4;i++){
+      const mins=winStart+i*15;
+      const lbl=pad(Math.floor(mins/60)%24)+":"+pad(mins%60);
+      const sp=document.createElement("span"); sp.textContent=lbl; axis.appendChild(sp);
+    }
+
+    const nowPct=toPct(fmtHHMM(nowSGT()));
+    const grid=document.getElementById("timeline-grid"); grid.innerHTML="";
 
     TERMINALS.forEach(t=>{
-      const flights=data.terminals[t]||[];
+      const flights=d.terminals[t]||[];
       const c=T_COLORS[t];
-      const row=document.createElement("div");
-      row.className="tl-row";
+      const row=document.createElement("div"); row.className="tl-row";
 
-      // badge
-      const badge=document.createElement("div");
-      badge.className="tl-badge";
-      badge.textContent=t;
-      badge.style.background=c+"22";
-      badge.style.border="1px solid "+c+"44";
-      badge.style.color=c;
+      const badge=document.createElement("div"); badge.className="tl-badge";
+      badge.textContent=t; badge.style.background=c+"22";
+      badge.style.border="1px solid "+c+"44"; badge.style.color=c;
       row.appendChild(badge);
 
-      // lane
-      const lane=document.createElement("div");
-      lane.className="tl-lane";
-      if(t===data.bestTerminal) { lane.style.background=c+"0d"; lane.style.borderColor=c+"44"; }
+      const lane=document.createElement("div"); lane.className="tl-lane";
+      if(t===d.bestTerminal){lane.style.background=c+"0d";lane.style.borderColor=c+"44";}
 
-      // now line
-      const nowLine=document.createElement("div");
-      nowLine.className="tl-now";
-      nowLine.style.left=nowPct+"%";
-      lane.appendChild(nowLine);
+      const nowLine=document.createElement("div"); nowLine.className="tl-now";
+      nowLine.style.left=nowPct+"%"; lane.appendChild(nowLine);
 
       if(flights.length===0){
-        const emp=document.createElement("div");
-        emp.className="tl-empty"; emp.textContent="no flights";
-        lane.appendChild(emp);
+        const emp=document.createElement("div"); emp.className="tl-empty";
+        emp.textContent="no flights"; lane.appendChild(emp);
       } else {
-        flights.forEach(f=>{
-          const pct=toWinPct(f.exitTime);
-          // block
-          const blk=document.createElement("div");
-          blk.className="tl-block";
-          blk.style.left=Math.max(0,pct-1)+"%";
-          blk.style.background=c;
+        flights.forEach((f,i)=>{
+          const pct=toPct(f.exitTime);
+          const blk=document.createElement("div"); blk.className="tl-block";
+          blk.style.left=Math.max(0,pct-0.5)+"%"; blk.style.background=c;
           lane.appendChild(blk);
-          // label — only if not too crowded
-          const lbl=document.createElement("div");
-          lbl.className="tl-lbl";
-          lbl.textContent=f.exitTime;
-          lbl.style.color=c;
-          // offset label left or right to avoid overlap
-          const leftPct=pct-1;
-          if(leftPct>75){ lbl.style.right=(100-leftPct+2)+"%"; lbl.style.left="auto"; }
-          else { lbl.style.left=(leftPct+2)+"%"; }
-          lane.appendChild(lbl);
+
+          // Only show label if not too crowded
+          if(i<4){
+            const lbl=document.createElement("div"); lbl.className="tl-lbl";
+            lbl.textContent=f.exitTime; lbl.style.color=c;
+            if(pct>75){lbl.style.right=(100-pct+2)+"%";lbl.style.left="auto";}
+            else{lbl.style.left=(pct+1)+"%";}
+            lane.appendChild(lbl);
+          }
         });
       }
-      row.appendChild(lane);
-      grid.appendChild(row);
+      row.appendChild(lane); grid.appendChild(row);
     });
 
-    // now label
     const nl=document.getElementById("now-label");
     nl.textContent="▲ now "+fmtHHMM(nowSGT());
     nl.style.left=nowPct+"%";
   }
 
-  // ── Render terminal cards ──────────────────────────────────────────────────
-  function renderTermCards(data) {
+  function renderTermCards(d) {
+    document.getElementById("term-section-label").style.display="block";
     const wrap=document.getElementById("term-cards");
-    wrap.style.display="block";
-    // clear old cards but keep section label
-    Array.from(wrap.querySelectorAll(".term-card")).forEach(c=>c.remove());
+    wrap.style.display="flex"; wrap.innerHTML="";
 
-    // sort: best terminal first, then by flight count desc
     const sorted=[...TERMINALS].sort((a,b)=>{
-      if(a===data.bestTerminal) return -1;
-      if(b===data.bestTerminal) return 1;
-      return (data.terminals[b]||[]).length-(data.terminals[a]||[]).length;
+      if(a===d.bestTerminal) return -1;
+      if(b===d.bestTerminal) return 1;
+      return d.terminals[b].length-d.terminals[a].length;
     });
 
     sorted.forEach(t=>{
-      const flights=data.terminals[t]||[];
-      const c=T_COLORS[t];
-      const isBest=t===data.bestTerminal && flights.length>0;
+      const flights=d.terminals[t]||[], c=T_COLORS[t];
+      const isBest=t===d.bestTerminal&&flights.length>0;
       const card=document.createElement("div");
       card.className="term-card"+(isBest?" best":"");
 
-      // header
-      const upcoming=flights.filter(f=>minsUntil(parseSGT(f.exitTime))>-5);
-      const exitTimes=flights.map(f=>f.exitTime).join(" · ");
-
-      card.innerHTML=`
-        <div class="tc-header" style="background:${c}0a;">
-          <div class="tc-header-left">
-            <div class="tc-badge" style="background:${c}22;border:1px solid ${c}44;color:${c};">${t}</div>
-            <div>
-              <div class="tc-name">${T_LABELS[t]}</div>
-              <div class="tc-count">${flights.length} flight${flights.length!==1?"s":""} in window</div>
-            </div>
+      // Header
+      const hdr=document.createElement("div"); hdr.className="tc-header";
+      hdr.style.background=c+"0a";
+      hdr.innerHTML=`
+        <div class="tc-left">
+          <div class="tc-badge" style="background:${c}22;border:1px solid ${c}44;color:${c};">${t}</div>
+          <div>
+            <div class="tc-name">${T_LABELS[t]}</div>
+            <div class="tc-count">${flights.length} flight${flights.length!==1?"s":""} in window</div>
           </div>
-          ${isBest?`<div class="best-pill">BEST</div>`:
-            flights.length>0?`<div class="tc-times">${exitTimes}</div>`:
-            `<div class="tc-noflight">no flights</div>`}
         </div>
-        ${flights.length>0?`
-        <div class="tc-flights">
-          <div class="tc-col-hdr">
-            <span>Flight · Origin</span>
-            <span style="text-align:center;">Lands</span>
-            <span style="text-align:center;">Pax out</span>
-          </div>
-          ${flights.map(f=>{
-            const em=minsUntil(parseSGT(f.exitTime));
-            const isPast=em<-10;
-            const exitColor=em<0?"var(--muted)":em<20?"var(--red)":em<45?"var(--amber)":c;
-            return `<div class="tc-flight-row${isPast?" past":""}">
-              <div class="fr-info">
-                <div class="fr-num">${f.flight}</div>
-                <div class="fr-origin">${f.origin} · ${f.type==="international"?"INTL":"DOM"}</div>
-              </div>
-              <div class="fr-land" style="color:${f.delayMins>0?"var(--amber)":"var(--sub)"};">${f.estimatedTouchdown}${f.delayMins>0?`<br><span style="font-size:9px;">+${f.delayMins}m</span>`:""}</div>
-              <div class="fr-exit" style="color:${exitColor};">${f.exitTime}</div>
-            </div>`;
-          }).join("")}
-        </div>`:""}`;
+        ${isBest?`<div class="best-pill">BEST</div>`:
+          flights.length>0?`<div class="tc-times">${flights.map(f=>f.exitTime).join(" · ")}</div>`:
+          `<div class="tc-noflight">no flights</div>`}`;
+      card.appendChild(hdr);
 
+      if(flights.length>0){
+        const tbody=document.createElement("div"); tbody.className="tc-flights";
+        tbody.innerHTML=`<div class="tc-col-hdr">
+          <span>Flight · Origin</span>
+          <span>Lands</span>
+          <span>Pax Out</span>
+        </div>`;
+
+        flights.forEach(f=>{
+          const exMins=minsUntil(parseSGT(f.exitTime));
+          const isPast=exMins<-10;
+          const isSoon=exMins>=0&&exMins<=30;
+          // Pax exit colour: within 30 mins = terminal colour, past = muted, else white
+          const exitColor=isPast?"var(--muted)":isSoon?c:"var(--text)";
+          const row=document.createElement("div");
+          row.className="tc-row"+(isPast?" past":"");
+          row.innerHTML=`
+            <div>
+              <div class="fr-num">${f.flight}</div>
+              <div class="fr-origin">${f.origin} · ${f.type==="international"?"INTL":"DOM"}</div>
+            </div>
+            <div class="fr-land" style="color:${f.delayMins>0?"var(--amber)":"var(--text)"}">
+              ${f.estimatedTouchdown}${f.delayMins>0?`<br><small style="font-size:9px;">+${f.delayMins}m</small>`:""}
+            </div>
+            <div class="fr-exit" style="color:${exitColor};">${f.exitTime}</div>`;
+          tbody.appendChild(row);
+        });
+        card.appendChild(tbody);
+      }
       wrap.appendChild(card);
     });
   }
@@ -771,52 +909,41 @@ Rules:
   async function loadData() {
     if(isLoading) return;
     isLoading=true;
-    const btn=document.getElementById("refresh-btn");
-    btn.disabled=true;
+    document.getElementById("check-now-btn").disabled=true;
     document.getElementById("error-box").style.display="none";
     document.getElementById("loading-state").classList.add("show");
     document.getElementById("signal-card").style.display="none";
     document.getElementById("timeline-wrap").style.display="none";
     document.getElementById("term-cards").style.display="none";
+    document.getElementById("term-section-label").style.display="none";
 
     try {
-      const data=await fetchData();
-      if(!data){isLoading=false;btn.disabled=false;return;}
-      lastData=data;
+      const raw=await fetchData();
+      if(!raw){isLoading=false;document.getElementById("check-now-btn").disabled=false;return;}
       document.getElementById("loading-state").classList.remove("show");
-      renderSignal(data);
-      renderTimeline(data);
-      renderTermCards(data);
+      const d=processData(raw);
+      renderSignal(d); renderTimeline(d); renderTermCards(d);
       document.getElementById("last-checked").textContent="Last checked "+fmtHHMM(nowSGT());
-    } catch(e) {
+    } catch(e){
       document.getElementById("loading-state").classList.remove("show");
       const eb=document.getElementById("error-box");
-      eb.innerHTML="⚠ Could not fetch data.<br><small style='color:var(--muted)'>"+e.message+"</small>";
+      eb.innerHTML="⚠ Could not fetch live data.<br><small style='color:var(--muted)'>"+e.message+"</small>";
       eb.style.display="block";
     } finally {
-      isLoading=false; btn.disabled=false;
+      isLoading=false;
+      document.getElementById("check-now-btn").disabled=false;
     }
   }
 
-  function triggerRefresh() { loadData(); }
-
   // ── Boot ───────────────────────────────────────────────────────────────────
-  renderApiStatus();
-  updateClock();
-  setInterval(updateClock, 10000);
-  setTimeout(loadData, 300);
+  window.addEventListener("load",function(){
+    renderWorkerStatus();
+    updateClock();
+    setInterval(updateClock,10000);
+    // pre-fill worker URL if already saved
+    const saved=getWorkerUrl();
+    if(saved) document.getElementById("worker-input").value=saved;
+  });
   </script>
-  <!-- ── BOTTOM NAV ── -->
-  <div id="bottom-nav">
-    <button class="tab-btn active" onclick="switchTab(this,'arrivals')">
-      <span class="tab-icon">✈</span>
-      <span class="tab-label">ARRIVALS</span>
-    </button>
-    <button class="tab-btn" onclick="switchTab(this,'settings')">
-      <span class="tab-icon">⚙</span>
-      <span class="tab-label">SETTINGS</span>
-    </button>
-  </div>
-
 </body>
 </html>
