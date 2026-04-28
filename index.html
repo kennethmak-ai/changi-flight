@@ -684,11 +684,16 @@
       const arrRaw = (f.arrival&&f.arrival.estimated) || (f.arrival&&f.arrival.scheduled);
       if(!arrRaw) return;
 
-      // Convert UTC ISO timestamp to SGT HH:MM
+      // Convert to SGT HH:MM
       let sgtStr;
       try {
+        // Add 8 hours for SGT (UTC+8)
         const d=new Date(arrRaw);
-        sgtStr=d.toLocaleTimeString("en-SG",{timeZone:"Asia/Singapore",hour:"2-digit",minute:"2-digit",hour12:false});
+        const sgtMs=d.getTime()+(8*60*60*1000);
+        const sgtDate=new Date(sgtMs);
+        const hh=String(sgtDate.getUTCHours()).padStart(2,"0");
+        const mm=String(sgtDate.getUTCMinutes()).padStart(2,"0");
+        sgtStr=hh+":"+mm;
       } catch(e){return;}
 
       const [ah,am]=sgtStr.split(":").map(Number);
@@ -708,7 +713,10 @@
       let schedStr=sgtStr;
       if(f.arrival&&f.arrival.scheduled){
         try{
-          schedStr=new Date(f.arrival.scheduled).toLocaleTimeString("en-SG",{timeZone:"Asia/Singapore",hour:"2-digit",minute:"2-digit",hour12:false});
+          const sd=new Date(f.arrival.scheduled);
+          const sMs=sd.getTime()+(8*60*60*1000);
+          const sDate=new Date(sMs);
+          schedStr=String(sDate.getUTCHours()).padStart(2,"0")+":"+String(sDate.getUTCMinutes()).padStart(2,"0");
         }catch(e){}
       }
 
